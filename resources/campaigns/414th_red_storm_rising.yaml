@@ -45,16 +45,20 @@ settings:
 squadrons:
   # =================================================================
   # BLUE / NATO — 414th Joint Fighter Group
+  # Available airports (from exercise_able_archer.miz):
+  #   1=Banak  2=Rovaniemi  4=Vuojarvi  5=Kiruna  7=Bodo
+  #   8=Severomorsk-1  9=Olenya  10=Monchegorsk  11=Jokkmokk
+  #   12=Murmansk Intl  14=Kirkenes  15=Kallax  18=Ivalo
+  #   20=Andoya  30=Koshka Yavr  Blue-CV  Blue-LHA
   # =================================================================
 
-  # BARDUFOSS (ID 21) — Primary NATO strike hub, Norwegian Arctic Air Force
-  21:
+  # BANAK (ID 1) — Norwegian forward strike hub
+  1:
     - primary: SEAD
       secondary: any
       aircraft:
         - F-16CM Fighting Falcon (Block 50)
       size: 8
-      name: "21st SEAD Flight"
     - primary: Escort
       secondary: any
       aircraft:
@@ -82,8 +86,8 @@ squadrons:
         - KC-135 Stratotanker
       size: 2
 
-  # EVENES (ID 25) — Multi-role strike package
-  25:
+  # ANDOYA (ID 20) — Multi-role strike and AEW
+  20:
     - primary: BARCAP
       secondary: any
       aircraft:
@@ -94,6 +98,10 @@ squadrons:
       aircraft:
         - F/A-18C Hornet (Lot 20)
       size: 6
+    - primary: AEW&C
+      aircraft:
+        - E-2C Hawkeye
+      size: 2
 
   # KIRKENES (ID 14) — Forward fighter base, fleet defense and intercept
   14:
@@ -102,13 +110,6 @@ squadrons:
       aircraft:
         - F-14A Tomcat
       size: 6
-
-  # ANDOYA (ID 20) — ISR / AEW node
-  20:
-    - primary: AEW&C
-      aircraft:
-        - E-2C Hawkeye
-      size: 2
 
   # ROVANIEMI (ID 2) — CAS hub, rotary wing, EW detachment
   2:
@@ -168,8 +169,8 @@ squadrons:
   # RED / SOVIET — 40th Air Army, Kola Air Defense District
   # =================================================================
 
-  # LUOSTARI / PECHENGA (ID 29) — Frontline fighter base
-  29:
+  # KOSHKA YAVR (ID 30) — Frontline northern interceptor base
+  30:
     - primary: BARCAP
       secondary: any
       aircraft:
@@ -258,8 +259,8 @@ squadrons:
         - IL-76MD
       size: 2
 
-  # ALAKURTTI (ID 19) — Forward attack base, Finnish border
-  19:
+  # VUOJARVI (ID 4) — Forward Finnish base (Soviet-captured), attack/assault
+  4:
     - primary: BAI
       secondary: any
       aircraft:
@@ -271,26 +272,13 @@ squadrons:
         - Mi-24P Hind-F
       size: 4
 
-  # IVALO (ID 18) — Finnish forward intercept (Soviet-captured)
+  # IVALO (ID 18) — Finnish intercept base (Soviet-captured)
   18:
     - primary: BARCAP
       secondary: any
       aircraft:
         - MiG-25PD Foxbat-E
       size: 4
-    - primary: CAS
-      secondary: any
-      aircraft:
-        - Mi-24P Hind-F
-      size: 4
-    - primary: Air Assault
-      secondary: any
-      aircraft:
-        - Mi-8MTV2 Hip
-      size: 4
-
-  # KITTILA (ID 22) — Central Finland assault FOB
-  22:
     - primary: CAS
       secondary: any
       aircraft:

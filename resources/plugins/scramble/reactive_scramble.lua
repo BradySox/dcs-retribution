@@ -147,7 +147,7 @@ local function registerGroup(mooseGroup)
     _groups[name] = rec
 
     if zoneMode then
-        rec.group:OptionROEWeaponHold()
+        rec.group:OptionROEHoldFire()
         rec.group:OptionROTEvadeFireAndBoost()
         log("Zone guard: " .. name .. " [zone: " .. zone .. "]")
         MESSAGE:New("GCI: " .. rec.airbase .. " on guard — zone: " .. zone, 8):ToAll()

@@ -4,11 +4,11 @@ theater: Kola
 authors: "414th Joint Fighter Group"
 recommended_player_faction: Bluefor Modern
 recommended_enemy_faction: Russia 1980
-description:
+description: |
   <p><em>"They needed oil. We just happened to be in the way."</em></p>
   <p>July 1987. A covert Soviet bombing of a West German petrochemical plant
   ignites a political crisis that spirals toward open war. As NATO forces
-  mobilise across the Central Front, Moscow executes its northern contingency:
+  mobilise across the Central Front, Moscow executes its northern contingency —
   a lightning invasion of Finland and a simultaneous push into northern Norway,
   designed to neutralise NATO's Arctic flank before the Alliance can respond
   in strength.</p>
@@ -18,13 +18,13 @@ description:
   Foxhounds own the high guard; MiG-29 Fulcrums patrol every approach
   corridor.</p>
   <p>NATO's 414th Joint Fighter Group deploys from Bardufoss and Bodo to hold
-  the line. Your job: suppress the Soviet IADS, keep the Backfires from
-  reaching the carrier battle group, and punch through to the Kola Peninsula
-  before Soviet logistics can sustain a ground campaign in Norway.</p>
+  the line. Suppress the Soviet IADS, keep the Backfires away from the carrier
+  battle group, and punch through to the Kola Peninsula before Soviet logistics
+  can sustain a ground campaign in Norway.</p>
   <p>A two-ship C-130J Compass Call detachment provides electronic warfare
   and ISR support. Use it — the Soviet radar network is dense and your SEAD
   package cannot be everywhere at once.</p>
-  <p><strong>Note:</strong> This campaign is built for the 414th JFG custom
+  <p><strong>Note</strong> — This campaign is built for the 414th JFG custom
   Retribution build. Reactive GCI scramble and C-130J Mission Systems are
   integrated. Skynet IADS is enabled — Soviet SAM sites will coordinate
   radar emissions.</p>

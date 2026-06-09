@@ -40,6 +40,9 @@ if TYPE_CHECKING:
     from game.factions.faction import Faction
     from game.theater import TheaterGroundObject, ControlPoint, PresetLocation
 
+# Tasks whose groups are always mobile and should be hidden on the MFD by default.
+_MOBILE_TASKS = {GroupTask.SHORAD, GroupTask.AAA}
+
 
 @dataclass
 class ForceGroup:
@@ -62,6 +65,7 @@ class ForceGroup:
     statics: list[Type[DcsUnitType]]
     tasks: list[GroupTask] = field(default_factory=list)
     layouts: list[TgoLayout] = field(default_factory=list)
+    hide_on_mfd: bool = False
 
     _by_name: ClassVar[dict[str, ForceGroup]] = {}
     _loaded: bool = False
@@ -93,6 +97,7 @@ class ForceGroup:
             list(statics),
             layout.tasks,
             [layout],
+            hide_on_mfd=any(t in _MOBILE_TASKS for t in layout.tasks),
         )
 
     def __str__(self) -> str:
@@ -220,6 +225,7 @@ class ForceGroup:
     ) -> TheaterGroundObject:
         """Create a TheaterGroundObject for the given template"""
         go = layout.create_ground_object(name, location, control_point, task)
+        go.hide_on_mfd = self.hide_on_mfd
         # Generate all groups using the randomization if it defined
         for tgo_group in layout.groups:
             for unit_group in tgo_group.unit_groups:
@@ -387,12 +393,16 @@ class ForceGroup:
                 logging.error(f"ForceGroup {name} has no valid layouts")
                 continue
 
+            # Default hide_on_mfd based on task type; YAML can override explicitly.
+            default_hide = any(t in _MOBILE_TASKS for t in group_tasks)
+            hide_on_mfd = data.get("hide_on_mfd", default_hide)
             force_group = ForceGroup(
                 name=name,
                 units=units,
                 statics=statics,
                 tasks=group_tasks,
                 layouts=layouts,
+                hide_on_mfd=hide_on_mfd,
             )
 
             cls._by_name[force_group.name] = force_group

@@ -1,6 +1,7 @@
 name: IRIS-T SLM
 tasks:
   - MERAD
+hide_on_mfd: true
 units:
   - SAM IRIS-T SLM STR [CH]
   - SAM IRIS-T SLM LN [CH]

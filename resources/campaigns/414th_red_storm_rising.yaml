@@ -1,0 +1,308 @@
+---
+name: "414th JFG - Red Storm Rising"
+theater: Kola
+authors: "414th Joint Fighter Group"
+recommended_player_faction: Bluefor Modern
+recommended_enemy_faction: Russia 1980
+description:
+  <p><em>"They needed oil. We just happened to be in the way."</em></p>
+  <p>July 1987. A covert Soviet bombing of a West German petrochemical plant
+  ignites a political crisis that spirals toward open war. As NATO forces
+  mobilise across the Central Front, Moscow executes its northern contingency:
+  a lightning invasion of Finland and a simultaneous push into northern Norway,
+  designed to neutralise NATO's Arctic flank before the Alliance can respond
+  in strength.</p>
+  <p>Soviet air armies launch from the Kola Peninsula — Severomorsk, Olenya,
+  Monchegorsk — with Tu-22M Backfire bombers at the tip of the spear and
+  layered SAM belts defending every square mile of the homeland. MiG-31
+  Foxhounds own the high guard; MiG-29 Fulcrums patrol every approach
+  corridor.</p>
+  <p>NATO's 414th Joint Fighter Group deploys from Bardufoss and Bodo to hold
+  the line. Your job: suppress the Soviet IADS, keep the Backfires from
+  reaching the carrier battle group, and punch through to the Kola Peninsula
+  before Soviet logistics can sustain a ground campaign in Norway.</p>
+  <p>A two-ship C-130J Compass Call detachment provides electronic warfare
+  and ISR support. Use it — the Soviet radar network is dense and your SEAD
+  package cannot be everywhere at once.</p>
+  <p><strong>Note:</strong> This campaign is built for the 414th JFG custom
+  Retribution build. Reactive GCI scramble and C-130J Mission Systems are
+  integrated. Skynet IADS is enabled — Soviet SAM sites will coordinate
+  radar emissions.</p>
+miz: 414th_red_storm_rising.miz
+performance: 2
+recommended_start_date: 1987-07-04
+version: "10.8"
+advanced_iads: true
+recommended_player_money: 1500
+recommended_enemy_money: 2000
+recommended_player_income_multiplier: 0.9
+recommended_enemy_income_multiplier: 1.1
+settings:
+  restrict_weapons_by_date: false
+  hercules: false
+  squadron_start_full: true
+
+squadrons:
+  # =================================================================
+  # BLUE / NATO — 414th Joint Fighter Group
+  # =================================================================
+
+  # BARDUFOSS (ID 21) — Primary NATO strike hub, Norwegian Arctic Air Force
+  21:
+    - primary: SEAD
+      secondary: any
+      aircraft:
+        - F-16CM Fighting Falcon (Block 50)
+      size: 8
+      name: "21st SEAD Flight"
+    - primary: Escort
+      secondary: any
+      aircraft:
+        - F-16CM Fighting Falcon (Block 50)
+      size: 4
+    - primary: Refueling
+      aircraft:
+        - KC-135 Stratotanker
+      size: 2
+
+  # BODO (ID 7) — Air superiority and deep strike
+  7:
+    - primary: TARCAP
+      secondary: any
+      aircraft:
+        - F-15C Eagle
+      size: 8
+    - primary: Strike
+      secondary: any
+      aircraft:
+        - F-15E Strike Eagle
+      size: 8
+    - primary: Refueling
+      aircraft:
+        - KC-135 Stratotanker
+      size: 2
+
+  # EVENES (ID 25) — Multi-role strike package
+  25:
+    - primary: BARCAP
+      secondary: any
+      aircraft:
+        - F/A-18C Hornet (Lot 20)
+      size: 8
+    - primary: DEAD
+      secondary: any
+      aircraft:
+        - F/A-18C Hornet (Lot 20)
+      size: 6
+
+  # KIRKENES (ID 14) — Forward fighter base, fleet defense and intercept
+  14:
+    - primary: TARCAP
+      secondary: any
+      aircraft:
+        - F-14A Tomcat
+      size: 6
+
+  # ANDOYA (ID 20) — ISR / AEW node
+  20:
+    - primary: AEW&C
+      aircraft:
+        - E-2C Hawkeye
+      size: 2
+
+  # ROVANIEMI (ID 2) — CAS hub, rotary wing, EW detachment
+  2:
+    - primary: CAS
+      secondary: any
+      aircraft:
+        - A-10C Thunderbolt II
+      size: 4
+    - primary: CAS
+      secondary: any
+      aircraft:
+        - AH-64D Apache Longbow
+      size: 4
+    - primary: Armed Recon
+      secondary: any
+      aircraft:
+        - OH-58D(R) Kiowa Warrior
+      size: 4
+    - primary: Air Assault
+      secondary: any
+      aircraft:
+        - CH-47F Block I
+      size: 4
+    - primary: Jamming
+      secondary: any
+      aircraft:
+        - C-130J-30 Super Hercules
+      size: 2
+      name: "Compass Call Kola"
+
+  # BLUE CARRIER (Norwegian Sea)
+  Blue-CV:
+    - primary: TARCAP
+      secondary: any
+      aircraft:
+        - F-14B Tomcat
+      size: 12
+    - primary: OCA/Aircraft
+      secondary: air-to-ground
+      aircraft:
+        - F/A-18C Hornet (Lot 20)
+      size: 8
+    - primary: AEW&C
+      aircraft:
+        - E-2C Hawkeye
+      size: 2
+
+  # BLUE LHA
+  Blue-LHA:
+    - primary: CAS
+      secondary: air-to-ground
+      aircraft:
+        - AV-8B Harrier II Night Attack
+      size: 8
+
+  # =================================================================
+  # RED / SOVIET — 40th Air Army, Kola Air Defense District
+  # =================================================================
+
+  # LUOSTARI / PECHENGA (ID 29) — Frontline fighter base
+  29:
+    - primary: BARCAP
+      secondary: any
+      aircraft:
+        - MiG-29A Fulcrum
+      size: 8
+    - primary: SEAD Sweep
+      secondary: any
+      aircraft:
+        - Su-17M4 Fitter-K
+      size: 6
+
+  # SEVEROMORSK-1 (ID 8) — Northern Fleet Aviation, primary fighter hub
+  8:
+    - primary: BARCAP
+      secondary: any
+      aircraft:
+        - MiG-31 Foxhound
+      size: 6
+    - primary: Escort
+      secondary: any
+      aircraft:
+        - MiG-23MLD Flogger-K
+      size: 8
+    - primary: SEAD
+      secondary: any
+      aircraft:
+        - Su-24M Fencer-D
+      size: 8
+
+  # SEVEROMORSK-3 (ID 6) — Fleet air defense and strike
+  6:
+    - primary: TARCAP
+      secondary: any
+      aircraft:
+        - Su-27 Flanker-B
+      size: 8
+    - primary: DEAD
+      secondary: any
+      aircraft:
+        - Su-24M Fencer-D
+      size: 8
+    - primary: Refueling
+      aircraft:
+        - IL-78M
+      size: 2
+
+  # OLENYA (ID 9) — Strategic bomber base
+  9:
+    - primary: Strike
+      secondary: any
+      aircraft:
+        - Tu-22M3 Backfire-C
+      size: 12
+    - primary: Strike
+      secondary: any
+      aircraft:
+        - Tu-95MS Bear-H
+      size: 8
+    - primary: Refueling
+      aircraft:
+        - IL-78M
+      size: 2
+
+  # MONCHEGORSK (ID 10) — Air defense second line
+  10:
+    - primary: BARCAP
+      secondary: any
+      aircraft:
+        - MiG-29A Fulcrum
+      size: 12
+    - primary: BAI
+      secondary: any
+      aircraft:
+        - Su-25 Frogfoot
+      size: 8
+
+  # MURMANSK INTERNATIONAL (ID 12) — C2 / logistics
+  12:
+    - primary: AEW&C
+      aircraft:
+        - A-50
+      size: 1
+    - primary: Transport
+      secondary: any
+      aircraft:
+        - IL-76MD
+      size: 2
+
+  # ALAKURTTI (ID 19) — Forward attack base, Finnish border
+  19:
+    - primary: BAI
+      secondary: any
+      aircraft:
+        - Su-25 Frogfoot
+      size: 8
+    - primary: CAS
+      secondary: any
+      aircraft:
+        - Mi-24P Hind-F
+      size: 4
+
+  # IVALO (ID 18) — Finnish forward intercept (Soviet-captured)
+  18:
+    - primary: BARCAP
+      secondary: any
+      aircraft:
+        - MiG-25PD Foxbat-E
+      size: 4
+    - primary: CAS
+      secondary: any
+      aircraft:
+        - Mi-24P Hind-F
+      size: 4
+    - primary: Air Assault
+      secondary: any
+      aircraft:
+        - Mi-8MTV2 Hip
+      size: 4
+
+  # KITTILA (ID 22) — Central Finland assault FOB
+  22:
+    - primary: CAS
+      secondary: any
+      aircraft:
+        - Mi-24P Hind-F
+      size: 4
+    - primary: Air Assault
+      secondary: any
+      aircraft:
+        - Mi-8MTV2 Hip
+      size: 4
+    - primary: BARCAP
+      secondary: any
+      aircraft:
+        - Su-27 Flanker-B
+      size: 6

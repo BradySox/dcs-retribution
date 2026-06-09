@@ -187,6 +187,13 @@ class Package(RadioFrequencyContainer):
             FlightType.TARCAP,
             FlightType.BARCAP,
             FlightType.AEWC,
+            # JAMMING ranks above ESCORT/SEAD_ESCORT so the C-130J EW aircraft
+            # is always the primary flight in mixed packages. Other flights
+            # (TARCAP, SEAD escort) then plan their join/split timing around the
+            # C-130J's orbit position and departure time rather than the other
+            # way around. TotEstimator.earliest_tot() already takes max() across
+            # all flights, so the C-130J's slower transit time drives the TOT.
+            FlightType.JAMMING,
             FlightType.FERRY,
             FlightType.RECOVERY,
             FlightType.REFUELING,
@@ -194,7 +201,6 @@ class Package(RadioFrequencyContainer):
             FlightType.SCRAMBLE,
             FlightType.SEAD_ESCORT,
             FlightType.ESCORT,
-            FlightType.JAMMING,
         ]
         for task in tasks_by_priority:
             if flight_counts[task]:

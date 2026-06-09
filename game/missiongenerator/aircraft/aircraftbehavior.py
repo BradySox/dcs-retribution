@@ -488,9 +488,17 @@ class AircraftBehavior:
         )
 
     def configure_jamming(self, group: FlyingGroup[Any], flight: Flight) -> None:
-        # EW jamming escort — follows the package on an EscortFlightPlan, orbits with
-        # WeaponHold. The C-130J Mission Systems Lua script drives jamming at runtime.
-        self.configure_task(flight, group, Transport, [AWACS])
+        # EW orbit — C-130J holds a racetrack outside the threat zone on an
+        # AewcFlightPlan, like AWACS. Other flights plan around it as the primary.
+        # The C-130J Mission Systems Lua script drives jamming logic at runtime;
+        # DCS just needs the aircraft to orbit at its waypoints under WeaponHold.
+        self.configure_task(flight, group, AWACS)
+        if not isinstance(flight.flight_plan, AewcFlightPlan):
+            logging.error(
+                f"Cannot configure jamming tasks for {flight} because it does not "
+                "have an AewcFlightPlan. Check FlightPlanBuilderTypes for JAMMING."
+            )
+            return
         self.configure_behavior(
             flight,
             group,
@@ -499,6 +507,7 @@ class AircraftBehavior:
             restrict_jettison=True,
             mission_uses_gun=False,
         )
+        group.points[0].tasks.append(AWACSTaskAction())
 
     def configure_transport(self, group: FlyingGroup[Any], flight: Flight) -> None:
         self.configure_task(flight, group, Transport)

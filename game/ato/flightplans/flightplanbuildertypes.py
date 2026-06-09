@@ -62,9 +62,12 @@ class FlightPlanBuilderTypes:
             # SCRAMBLE = GCI interceptor — orbits near friendly base (same pattern as
             # BARCAP) with WeaponHold; reactive_scramble.lua activates it at runtime.
             FlightType.SCRAMBLE: BarCapFlightPlan.builder_type(),
-            # JAMMING = standoff EW escort — follows the package's primary flight
-            # (join → split) and orbits near the target with WeaponHold.
-            FlightType.JAMMING: EscortFlightPlan.builder_type(),
+            # JAMMING = standoff EW orbit — C-130J holds a racetrack outside the
+            # threat zone (same pattern as AEWC) and other flights plan around it.
+            # AewcFlightPlan positions the orbit at standoff range from the threat
+            # boundary, reads preferred_patrol_speed from the unit type, and gives
+            # the AI a proper race-track with nav_to/nav_from legs.
+            FlightType.JAMMING: AewcFlightPlan.builder_type(),
             FlightType.TARCAP: TarCapFlightPlan.builder_type(),
             FlightType.AEWC: AewcFlightPlan.builder_type(),
             FlightType.TRANSPORT: AirliftFlightPlan.builder_type(),

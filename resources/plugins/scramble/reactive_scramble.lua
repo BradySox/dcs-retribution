@@ -103,7 +103,7 @@ end
 
 local function activateIntercept(rec)
     rec.group:OptionROEWeaponFree()
-    rec.group:OptionReactionOnThreatEvadeFireAndBoost()
+    rec.group:OptionROTEvadeFireAndBoost()
 
     local ctrl = rec.group:GetController()
     if ctrl then
@@ -147,8 +147,8 @@ local function registerGroup(mooseGroup)
     _groups[name] = rec
 
     if zoneMode then
-        rec.group:OptionROEOpenFire()
-        rec.group:OptionReactionOnThreatEvadeFireAndBoost()
+        rec.group:OptionROEWeaponHold()
+        rec.group:OptionROTEvadeFireAndBoost()
         log("Zone guard: " .. name .. " [zone: " .. zone .. "]")
         MESSAGE:New("GCI: " .. rec.airbase .. " on guard — zone: " .. zone, 8):ToAll()
     else

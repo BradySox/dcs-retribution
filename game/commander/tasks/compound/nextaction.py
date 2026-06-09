@@ -13,6 +13,7 @@ from game.commander.tasks.compound.degradeiads import DegradeIads
 from game.commander.tasks.compound.interdictreinforcements import (
     InterdictReinforcements,
 )
+from game.commander.tasks.compound.gcicoverage import ProvideGciCoverage
 from game.commander.tasks.compound.protectairspace import ProtectAirSpace
 from game.commander.tasks.compound.recoverysupport import RecoverySupport
 from game.commander.tasks.compound.theatersupport import TheaterSupport
@@ -27,6 +28,7 @@ class PlanNextAction(CompoundTask[TheaterState]):
     def each_valid_method(self, state: TheaterState) -> Iterator[Method[TheaterState]]:
         yield [TheaterSupport()]
         yield [ProtectAirSpace()]
+        yield [ProvideGciCoverage()]
         yield [DefendBases()]
         yield [InterdictReinforcements()]
         yield [AttackBattlePositions()]

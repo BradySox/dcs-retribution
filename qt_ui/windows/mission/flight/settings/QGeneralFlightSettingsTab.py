@@ -62,6 +62,7 @@ class QGeneralFlightSettingsTab(QFrame):
             start_type,
             QFlightCustomName(flight),
         ]
+
         layout = QGridLayout()
         row = 0
         for w in widgets:

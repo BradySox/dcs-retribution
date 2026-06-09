@@ -82,6 +82,11 @@ class Flight(
         self.start_type = start_type
         self.custom_name = custom_name
         self.group_id: int = 0
+        # Optional DCS trigger zone name that defines the airspace this BARCAP/TARCAP/
+        # Sweep flight is responsible for defending.  Set via the flight planning UI and
+        # written into dcsRetribution.barcap_zones by the mission generator so that
+        # reactive_scramble.lua can route Blue threats to the correct RED interceptor.
+        self.coverage_zone: Optional[str] = None
 
         self.frequency = frequency
         if self.unit_type.dcs_unit_type.tacan:
@@ -170,6 +175,8 @@ class Flight(
         state["state"] = Uninitialized(self, state["squadron"].settings)
         if "use_same_loadout_for_all_members" not in state:
             state["use_same_loadout_for_all_members"] = True
+        # Save-compat: flights saved before coverage_zone was added default to None.
+        state.setdefault("coverage_zone", None)
         self.__dict__.update(state)
         if isinstance(self.roster, FlightRoster):
             self.roster = FlightMembers.from_roster(self, self.roster)

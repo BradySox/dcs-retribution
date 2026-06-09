@@ -34,6 +34,9 @@ class MissionScheduler:
         dca_types = {
             FlightType.BARCAP,
             FlightType.TARCAP,
+            # SCRAMBLE = GCI Scramble — orbit near base like BARCAP so it gets the
+            # same chained end-to-end scheduling rather than random spread timing.
+            FlightType.SCRAMBLE,
         }
 
         previous_cap_end_time: dict[MissionTarget, datetime] = defaultdict(now.replace)

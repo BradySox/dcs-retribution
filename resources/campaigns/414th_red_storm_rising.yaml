@@ -138,7 +138,7 @@ squadrons:
       aircraft:
         - C-130J-30 Super Hercules
       size: 2
-      name: "Compass Call Kola"
+      name: "Compass Call"
 
   # BLUE CARRIER (Norwegian Sea)
   Blue-CV:

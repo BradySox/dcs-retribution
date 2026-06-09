@@ -41,6 +41,7 @@ class MissionTarget:
                 FlightType.SEAD_SWEEP,
                 FlightType.ARMED_RECON,
                 FlightType.SWEEP,
+                FlightType.JAMMING,
                 # TODO: FlightType.ELINT,
                 # TODO: FlightType.EWAR,
                 # TODO: FlightType.RECON,

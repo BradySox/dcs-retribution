@@ -72,6 +72,10 @@ class FlightData:
 
     custom_name: Optional[str]
 
+    # Optional DCS trigger zone name for GCI coverage routing.  Mirrors Flight.coverage_zone
+    # and is consumed by LuaGenerator to populate dcsRetribution.barcap_zones.
+    coverage_zone: Optional[str] = None
+
     callsign: str = field(init=False)
 
     #: Map of radio frequencies to their assigned radio and channel, if any.

@@ -52,6 +52,7 @@ class PersistentContext:
 class TheaterState(WorldState["TheaterState"]):
     context: PersistentContext
     barcaps_needed: dict[ControlPoint, int]
+    scrambles_needed: dict[ControlPoint, int]
     active_front_lines: list[FrontLine]
     front_line_stances: dict[FrontLine, Optional[CombatStance]]
     vulnerable_front_lines: list[FrontLine]
@@ -120,6 +121,7 @@ class TheaterState(WorldState["TheaterState"]):
         return TheaterState(
             context=self.context,
             barcaps_needed=dict(self.barcaps_needed),
+            scrambles_needed=dict(self.scrambles_needed),
             active_front_lines=list(self.active_front_lines),
             front_line_stances=dict(self.front_line_stances),
             vulnerable_front_lines=list(self.vulnerable_front_lines),
@@ -190,12 +192,17 @@ class TheaterState(WorldState["TheaterState"]):
         aewc_targets = [cp for cp in finder.friendly_control_points() if cp.is_carrier]
         aewc_targets.append(finder.farthest_friendly_control_point())
 
+        vulnerable_cps = list(finder.vulnerable_control_points())
+
         return TheaterState(
             context=context,
             barcaps_needed={
                 cp: 2 * barcap_rounds if cp.is_fleet else barcap_rounds
-                for cp in finder.vulnerable_control_points()
+                for cp in vulnerable_cps
             },
+            # One scramble flight per vulnerable friendly CP — the reactive Lua
+            # script handles continuous intercept duty so no multi-round needed.
+            scrambles_needed={cp: 1 for cp in vulnerable_cps},
             active_front_lines=list(finder.front_lines()),
             front_line_stances={f: None for f in finder.front_lines()},
             vulnerable_front_lines=list(finder.front_lines()),

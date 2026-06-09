@@ -270,6 +270,14 @@ class AircraftType(UnitType[Type[FlyingType]]):
             ):
                 enrich[FlightType.SEAD_SWEEP] = value
 
+        # Any fighter that can BARCAP or do a fighter sweep can also perform
+        # GCI Scramble duty — no separate YAML entry needed.
+        if FlightType.SCRAMBLE not in self.task_priorities:
+            if (value := self.task_priorities.get(FlightType.BARCAP)) or (
+                value := self.task_priorities.get(FlightType.SWEEP)
+            ):
+                enrich[FlightType.SCRAMBLE] = value
+
         if FlightType.ARMED_RECON not in self.task_priorities:
             if (value := self.task_priorities.get(FlightType.CAS)) or (
                 value := self.task_priorities.get(FlightType.BAI)
@@ -635,6 +643,17 @@ class AircraftType(UnitType[Type[FlyingType]]):
             elif FlightType.BAI in task_priorities:
                 task_priorities[FlightType.ARMED_RECON] = task_priorities[
                     FlightType.BAI
+                ]
+        # Any fighter that can BARCAP or do a fighter sweep can also perform
+        # GCI Scramble duty — no separate YAML entry needed.
+        if FlightType.SCRAMBLE not in task_priorities:
+            if FlightType.BARCAP in task_priorities:
+                task_priorities[FlightType.SCRAMBLE] = task_priorities[
+                    FlightType.BARCAP
+                ]
+            elif FlightType.SWEEP in task_priorities:
+                task_priorities[FlightType.SCRAMBLE] = task_priorities[
+                    FlightType.SWEEP
                 ]
         return task_priorities
 

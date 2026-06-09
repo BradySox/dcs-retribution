@@ -66,6 +66,8 @@ class AircraftBehavior:
             self.configure_cap(group, flight)
         elif self.task == FlightType.SWEEP:
             self.configure_sweep(group, flight)
+        elif self.task == FlightType.SCRAMBLE:
+            self.configure_scramble(group, flight)
         elif self.task == FlightType.AEWC:
             self.configure_awacs(group, flight)
         elif self.task == FlightType.REFUELING:
@@ -92,6 +94,8 @@ class AircraftBehavior:
             self.configure_runway_attack(group, flight)
         elif self.task == FlightType.OCA_AIRCRAFT:
             self.configure_oca_strike(group, flight)
+        elif self.task == FlightType.JAMMING:
+            self.configure_jamming(group, flight)
         elif self.task in [
             FlightType.TRANSPORT,
             FlightType.AIR_ASSAULT,
@@ -207,12 +211,30 @@ class AircraftBehavior:
 
     def configure_sweep(self, group: FlyingGroup[Any], flight: Flight) -> None:
         self.configure_task(flight, group, FighterSweep)
-        if not flight.unit_type.gunfighter:
-            ammo_type = OptRTBOnOutOfAmmo.Values.AAM
-        else:
-            ammo_type = OptRTBOnOutOfAmmo.Values.Cannon
-
+        ammo_type = (
+            OptRTBOnOutOfAmmo.Values.Cannon
+            if flight.unit_type.gunfighter
+            else OptRTBOnOutOfAmmo.Values.AAM
+        )
         self.configure_behavior(flight, group, rtb_winchester=ammo_type)
+
+    def configure_scramble(self, group: FlyingGroup[Any], flight: Flight) -> None:
+        # GCI Scramble — orbit near the friendly base with WeaponHold.
+        # reactive_scramble.lua switches to WEAPON_FREE + EngageTargets when a
+        # Blue aircraft enters radar range (or the assigned coverage zone).
+        self.configure_task(flight, group, CAP)
+        ammo_type = (
+            OptRTBOnOutOfAmmo.Values.Cannon
+            if flight.unit_type.gunfighter
+            else OptRTBOnOutOfAmmo.Values.AAM
+        )
+        self.configure_behavior(
+            flight,
+            group,
+            react_on_threat=OptReactOnThreat.Values.EvadeFire,
+            roe=OptROE.Values.WeaponHold,
+            rtb_winchester=ammo_type,
+        )
 
     def configure_cas(self, group: FlyingGroup[Any], flight: Flight) -> None:
         self.configure_task(flight, group, CAS, [AFAC, AntishipStrike])
@@ -461,6 +483,19 @@ class AircraftBehavior:
             # Guided includes ARMs and TALDs (among other things, but those are the useful
             # weapons for SEAD).
             rtb_winchester=OptRTBOnOutOfAmmo.Values.Guided,
+            restrict_jettison=True,
+            mission_uses_gun=False,
+        )
+
+    def configure_jamming(self, group: FlyingGroup[Any], flight: Flight) -> None:
+        # EW jamming escort — follows the package on an EscortFlightPlan, orbits with
+        # WeaponHold. The C-130J Mission Systems Lua script drives jamming at runtime.
+        self.configure_task(flight, group, Transport, [AWACS])
+        self.configure_behavior(
+            flight,
+            group,
+            react_on_threat=OptReactOnThreat.Values.EvadeFire,
+            roe=OptROE.Values.WeaponHold,
             restrict_jettison=True,
             mission_uses_gun=False,
         )

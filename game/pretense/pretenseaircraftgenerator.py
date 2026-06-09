@@ -246,12 +246,15 @@ class PretenseAircraftGenerator:
             FlightType.INTERCEPTION,
             FlightType.ESCORT,
             FlightType.SWEEP,
+            FlightType.SCRAMBLE,
         ):
             flight_type = FlightType.BARCAP
         if flight_type in (FlightType.SEAD_ESCORT, FlightType.SEAD_SWEEP):
             flight_type = FlightType.SEAD
         if flight_type == FlightType.ANTISHIP:
             flight_type = FlightType.STRIKE
+        if flight_type == FlightType.JAMMING:
+            flight_type = FlightType.TRANSPORT
         if flight_type == FlightType.TRANSPORT:
             flight_type = FlightType.AIR_ASSAULT
         squadron = Squadron.create_from(

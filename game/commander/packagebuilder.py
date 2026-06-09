@@ -73,6 +73,14 @@ class PackageBuilder:
         if start_type is None:
             start_type = self.start_type
 
+        # Reactive scramble flights must always cold-start.  A hot or in-air
+        # spawn defeats the WeaponHold posture entirely — the aircraft would just
+        # orbit with engines already running, indistinguishable from BARCAP.
+        # Override unconditionally here, before the player-flight block below
+        # (SCRAMBLE flights are AI-only, so that block never fires for them).
+        if plan.task == FlightType.SCRAMBLE:
+            start_type = StartType.COLD
+
         flight = Flight(
             self.package,
             squadron,

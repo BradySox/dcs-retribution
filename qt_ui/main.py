@@ -13,6 +13,8 @@ from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import QApplication, QCheckBox, QSplashScreen
 from dcs.liveries.liverycache import LiveryCache
 from dcs.payloads import PayloadDirectories
+from dcs.unittype import FlyingType
+import dcs.lua as dcs_lua
 
 from game import Game, VERSION, logging_config, persistency
 from game.ato import FlightType
@@ -40,6 +42,81 @@ from qt_ui.windows.preferences.QLiberationFirstStartWindow import (
 )
 
 THIS_DIR = Path(__file__).parent
+
+
+def _patch_pydcs_payload_loader() -> None:
+    # pydcs's load_payloads() catches SyntaxError but not ValueError.
+    # Some mod payload Lua files (e.g. CJS Super Hornet v2.4) use local variable
+    # names as table indices ([OBL], [JML], etc.) which the pydcs Lua parser
+    # cannot handle and raises ValueError.  We patch load_payloads() so those
+    # files are skipped with a warning rather than crashing the whole turn.
+    import types
+    import dcs.lua as lua
+
+    original_load_payloads = FlyingType.load_payloads.__func__  # type: ignore[attr-defined]
+
+    @classmethod  # type: ignore[misc]
+    def _patched_load_payloads(cls):  # type: ignore[override]
+        from dcs.payloads import PayloadDirectories
+        from pathlib import Path
+        import sys
+
+        if FlyingType._UnitPayloadGlobals is None:
+            from dcs import task
+            FlyingType._UnitPayloadGlobals = {
+                v.internal_name: v.id for k, v in task.MainTask.map.items()
+            }
+
+        FlyingType.scan_payload_dir()
+        if cls.payloads is not None:
+            return cls.payloads
+        cls.payloads = {}
+
+        for payload_dir in PayloadDirectories.payload_dirs():
+            if not payload_dir.exists():
+                continue
+            for payload_path in payload_dir.glob("*.lua"):
+                try:
+                    FlyingType._payload_cache[payload_path]
+                except KeyError:
+                    import logging as _logging
+                    _logging.getLogger("pydcs").exception(
+                        "Failed to parse Lua code in %s", payload_path
+                    )
+                    continue
+                if (
+                    FlyingType._payload_cache[payload_path] == cls.id
+                    and payload_path.exists()
+                ):
+                    try:
+                        payload_main = lua.loads(
+                            payload_path.read_text(),
+                            _globals=FlyingType._UnitPayloadGlobals,
+                        )
+                    except SyntaxError:
+                        print(
+                            f"Error parsing lua file '{payload_path}'",
+                            file=sys.stderr,
+                        )
+                        raise
+                    except ValueError:
+                        import logging as _logging
+                        _logging.getLogger("pydcs").warning(
+                            "Skipping payload file with unsupported Lua syntax "
+                            "(local variable indices): %s",
+                            payload_path,
+                        )
+                        continue
+                    pays = payload_main["unitPayloads"]
+                    if pays["unitType"] == cls.id:
+                        for load in pays["payloads"].values():
+                            name = load["name"]
+                            if name not in cls.payloads:
+                                cls.payloads[load["name"]] = load
+
+        return cls.payloads
+
+    FlyingType.load_payloads = _patched_load_payloads
 
 
 def inject_custom_payloads(user_path: Path) -> None:
@@ -419,6 +496,8 @@ def main():
         logging.warning(
             "Installation path contains non-ASCII characters. This is known to cause problems."
         )
+
+    _patch_pydcs_payload_loader()
 
     game: Optional[Game] = None
 

@@ -143,6 +143,7 @@ class ForceGroup:
             statics=list(preset_group.statics),
             tasks=list(preset_group.tasks),
             layouts=list(preset_group.layouts),
+            hide_on_mfd=preset_group.hide_on_mfd,
         )
 
     def has_access_to_dcs_type(self, type: Type[DcsUnitType]) -> bool:

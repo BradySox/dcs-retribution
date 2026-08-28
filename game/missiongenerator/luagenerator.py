@@ -19,6 +19,7 @@ from game.theater import TheaterGroundObject
 from game.theater.iadsnetwork.iadsrole import IadsRole
 from game.utils import escape_string_for_lua
 from .missiondata import MissionData
+from .borderluadata import populate_border_lua
 
 if TYPE_CHECKING:
     from game import Game
@@ -291,6 +292,11 @@ class LuaGenerator:
                 "engagementRangeMeters", str(escort.engagement_range_meters)
             )
 
+        # The map's real national borders, drawn on the F10 map by the
+        # countryborders plugin. Emitted only for a terrain that ships border
+        # data; drawing only, nothing reacts to it.
+        populate_border_lua(lua_data, self.game)
+
         trigger = TriggerStart(comment="Set DCS Retribution data")
         trigger.add_action(DoScript(String(lua_data.create_operations_lua())))
         self.mission.triggerrules.triggers.append(trigger)
@@ -439,6 +445,12 @@ class LuaData(LuaItem):
                 return item
         return self.add_item(item_name)
 
+    def _serialized_scalars(self) -> list[str]:
+        """This item's own key/values, as table entries."""
+        if isinstance(self.value, LuaValue):
+            return [self.value.serialize()]
+        return [v.serialize() for v in self.value]
+
     def serialize(self, level: int = 0) -> str:
         """serialize the LuaData to a string"""
         serialized_data: list[str] = []
@@ -453,8 +465,12 @@ class LuaData(LuaItem):
             # Only used for initialization of the object in lua
             serialized_name += self.base_name + " = "
         if self.objects:
-            # nested objects
-            serialized_objects = [o.serialize(level + 1) for o in self.objects]
+            # Nested objects AND this item's own scalars. Emitting only the
+            # nested half silently drops every add_key_value on an item that has
+            # both, so a record carrying a name beside a list of points reaches
+            # the Lua with the list and no name.
+            entries = self._serialized_scalars()
+            entries += [o.serialize(level + 1) for o in self.objects]
             if self.name:
                 if self.name is not self.base_name:
                     serialized_name += self.name + " = "
@@ -463,7 +479,7 @@ class LuaData(LuaItem):
                 + "{"
                 + linebreak
                 + tab
-                + ("," + linebreak + tab).join(serialized_objects)
+                + ("," + linebreak + tab).join(entries)
                 + linebreak
                 + tab_end
                 + "}"

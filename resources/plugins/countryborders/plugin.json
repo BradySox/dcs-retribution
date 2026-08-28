@@ -1,0 +1,26 @@
+{
+    "nameInUI": "Country borders on the F10 map",
+    "descriptionInUI": "Draws each country's real national border on the F10 map, with its name, for the eight terrains that ship border data (Afghanistan, Caucasus, Falklands, Iraq, Kola, Persian Gulf, Sinai, Syria). Geometry is a property of the map, so no campaign has to author anything. Drawing only -- nothing reacts to an aircraft and no unit is spawned.",
+    "defaultValue": false,
+    "specificOptions": [
+        {
+            "nameInUI": "Write each country's name on the map",
+            "mnemonic": "drawNames",
+            "defaultValue": true
+        },
+        {
+            "nameInUI": "Country name font size",
+            "mnemonic": "labelFontSize",
+            "defaultValue": 16,
+            "minimumValue": 8,
+            "maximumValue": 30
+        }
+    ],
+    "scriptsWorkOrders": [],
+    "configurationWorkOrders": [
+        {
+            "file": "countryborders-config.lua",
+            "mnemonic": "countryborders-config"
+        }
+    ]
+}

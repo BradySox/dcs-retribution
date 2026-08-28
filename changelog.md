@@ -1,6 +1,7 @@
 # Retribution v1.6.0
 
 ## Features/Improvements
+* **[Plugins]** New "Country borders on the F10 map" plugin draws each country's real national border, with its name, on the eight terrains that ship border data (Afghanistan, Caucasus, Falklands, Iraq, Kola, Persian Gulf, Sinai, Syria). Borders are a property of the map, so no campaign has to author anything. Off by default; drawing only.
 * **[Kneeboard]** Use a light-grey daytime kneeboard background instead of near-white, to avoid glare under HDR / Auto-HDR while staying readable in daylight.
 * **[UX]** Hovering a friendly flight's route line on the map highlights it in yellow, and clicking it selects that flight's package (and the flight) in the ATO sidebar.
 * **[UX]** Press Delete with a package selected in the Packages list to cancel it, making it quick to clear several packages in a row.

@@ -18,9 +18,18 @@ is what makes a frontier one line. ``tests/test_country_borders.py`` asserts the
 result is still a valid coverage.
 
 **The vertex budget matters most where the coast is complicated.** Norway is the
-worst case on the shipped maps -- a thin fjord coast wrapping around Sweden --
-and at a 24-vertex budget it was 30.2 % wrong by symmetric difference against
-the true clipped country, against Sweden's 9.7 %. The budget is 96.
+worst case on the shipped maps -- a thin fjord coast wrapping around Sweden.
+Measured by symmetric difference against the true clipped country: 30.2 % wrong
+at a 24-vertex budget, 7.31 % at 96, and 1.28 % at the 384 shipped now. 192 buys
+almost nothing in between (5.52 %) and 800 only reaches 0.17 % for twice the
+points again, so 384 is where the curve turns.
+
+**Detail is free on the outline and not in the fill.** The F10 outline is a
+single freeform however many points it carries, but DCS will not fill a concave
+shape, so the plugin's fill goes through MOOSE's triangulation and costs roughly
+one markup per vertex. The rings therefore ship at full resolution and the
+plugin thins only the fill (``FILL_MAX_VERTS``), which keeps the F10 markup
+count near where a 96-vertex build put it.
 
 **Every country on the map is drawn, including the one the map is named after.**
 Leaving the host nation out on the theory that a border round the battlefield is
@@ -101,7 +110,7 @@ def main() -> None:
     parser.add_argument(
         "--max-vertices",
         type=int,
-        default=96,
+        default=384,
         help="Ring vertex budget, binding the WORST ring on the map -- the whole "
         "map is simplified as one coverage at a single tolerance, because a "
         "shared frontier has to be simplified once to come out the same on both "
@@ -116,8 +125,13 @@ def main() -> None:
     parser.add_argument(
         "--min-area-km2",
         type=float,
-        default=0.0,
-        help="Drop landmasses smaller than this. Each surviving piece becomes a "
+        default=500.0,
+        help="Drop landmasses smaller than this. **Required at the default "
+        "vertex budget**: finer geometry stops absorbing slivers, and at 384 "
+        "with no floor Kola gains a 340 km2 / 6-vertex Russian fragment and a "
+        "0 km2 / 3-vertex Norwegian one. 500 cuts between those and the "
+        "smallest genuine territories (Bahrain 598 km2, Oman's Musandam 1799, "
+        "both with 32+ vertices). Each surviving piece becomes a "
         "zone of its own, so an archipelago needs a floor: the "
         "Falklands map otherwise gives Chile five, one of them the 1,439 km² "
         "Cape Horn group. Real territory, but not airspace anyone contests.",

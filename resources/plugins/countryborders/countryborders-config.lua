@@ -33,6 +33,15 @@ local FILL_RGB = { 0.85, 0.85, 0.85 }
 local FILL_ALPHA = 0.05
 local LINE_TYPE = 2 -- dashed: a boundary, not a hazard ring
 local LABEL_FONT_SIZE = tonumber(opts.labelFontSize) or 16
+
+--: Vertices the FILL may use. The outline is one freeform however many points
+--: it carries, so detail on the LINE is free -- but DCS will not fill a concave
+--: shape, so the fill goes through MOOSE's triangulation and comes back as
+--: roughly one markup per vertex. The rings ship at full resolution and only
+--: the fill is thinned, which keeps the F10 markup count near where it was
+--: while the outline gets every point. At 5% alpha under a precise outline the
+--: thinning is not visible.
+local FILL_MAX_VERTS = 96
 local DRAW_NAMES = opts.drawNames ~= false
 
 local function log(msg)
@@ -63,9 +72,20 @@ end
 
 local function draw_fill(zone, index)
     pcall(function()
+        -- Even stride, first vertex always kept, so the thinned ring still
+        -- closes on itself and keeps the shape's extremes.
+        local n = #zone.verts
+        local stride = 1
+        if n > FILL_MAX_VERTS then
+            stride = math.ceil(n / FILL_MAX_VERTS)
+        end
         local pts = {}
-        for _, v in ipairs(zone.verts) do
+        for i = 1, n, stride do
+            local v = zone.verts[i]
             pts[#pts + 1] = { x = v.x, y = v.z }
+        end
+        if #pts < 3 then
+            return
         end
         local poly = ZONE_POLYGON:NewFromPointsArray("CB-" .. index, pts)
         poly:SetDrawCoalition(-1)

@@ -117,12 +117,12 @@ def test_an_archipelago_does_not_become_a_dozen_zones() -> None:
 def test_a_complex_coast_is_not_simplified_into_a_blob() -> None:
     """Norway is the worst shape the simplifier meets here: a thin fjord coast
     wrapping around Sweden. Measured by symmetric difference against the true
-    clipped country, a 24-vertex budget was 30.2% wrong, against Sweden's 9.7%
-    and Finland's 7.0%. The budget is 96; this pins that a regeneration did not
-    quietly drop it."""
+    clipped country: 30.2% wrong at a 24-vertex budget, 7.31% at 96, and 1.28%
+    at the 384 shipped now. This pins that a regeneration did not quietly drop
+    the budget -- 96 put Norway at 93 vertices."""
     norway = [e for e in load_terrain_borders("Kola") if e["country"] == "Norway"]
     assert norway, "Kola no longer draws Norway"
-    assert len(norway[0]["border"]) >= 40, (
+    assert len(norway[0]["border"]) >= 250, (
         f"Norway came out at {len(norway[0]['border'])} vertices -- at that "
         "budget its coastline is a blob"
     )
@@ -187,3 +187,23 @@ def test_the_label_lands_inside_the_country_it_names() -> None:
             assert polygon.contains(
                 Point(point)
             ), f"{terrain}/{entry['country']}'s name would be written outside it"
+
+
+def test_a_higher_budget_did_not_reintroduce_slivers() -> None:
+    """Finer geometry stops absorbing slivers, so the budget needs an area floor.
+
+    At 384 with no floor, Kola gained a 340 km2 / 6-vertex Russian fragment and
+    a 0 km2 / 3-vertex Norwegian one -- each of which would be drawn and labelled
+    as a country. 500 km2 cuts between those and the smallest genuine
+    territories: Bahrain 598 km2, Oman's Musandam 1,799, Iran's coastal piece
+    1,973, all with 32+ vertices.
+    """
+    from shapely.geometry import Polygon
+
+    for terrain in SHIPPED:
+        for entry in load_terrain_borders(terrain):
+            area_km2 = Polygon(entry["border"]).area / 1e6
+            assert area_km2 >= 400, (
+                f"{terrain}/{entry['country']} is a {area_km2:.0f} km2 sliver -- "
+                "regenerate with --min-area-km2"
+            )

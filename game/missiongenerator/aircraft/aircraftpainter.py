@@ -8,12 +8,20 @@ from dcs.unitgroup import FlyingGroup
 from game.ato import Flight
 from game.dcs.aircrafttype import AircraftType
 from game.factions import Faction
+from .liveryallocator import LiveryAllocator
 
 
 class AircraftPainter:
-    def __init__(self, flight: Flight, group: FlyingGroup[Any]) -> None:
+    def __init__(
+        self,
+        flight: Flight,
+        group: FlyingGroup[Any],
+        livery_allocator: Optional[LiveryAllocator] = None,
+    ) -> None:
         self.flight = flight
         self.group = group
+        # None falls back to the random round-robin (tests, un-plumbed callers).
+        self.livery_allocator = livery_allocator
 
     def livery_from_unit_type(self) -> Optional[str]:
         return self.flight.unit_type.default_livery
@@ -35,6 +43,8 @@ class AircraftPainter:
             and (self.flight.squadron.use_livery_set or member_uses_livery_set)
         ):
             return None
+        if self.livery_allocator is not None:
+            return self.livery_allocator.next_livery(self.flight.squadron)
         return self.flight.squadron.random_round_robin_livery_from_set()
 
     def determine_livery(self, member_uses_livery_set: bool) -> Optional[str]:

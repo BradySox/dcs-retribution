@@ -109,13 +109,13 @@ class QWeatherAdjustmentWidget(QWidget):
         grid.addWidget(self.wind_gl_speed, 1, 1)
         grid.addWidget(self.wind_gl_dir, 1, 2)
 
-        grid.addWidget(QLabel("FL080 (2000m)"), 2, 0)
+        grid.addWidget(QLabel("2,000 m (FL066)"), 2, 0)
         self.wind_fl08_speed = _make_speed_spin(wind.at_2000m.speed or 0)
         self.wind_fl08_dir = _make_dir_spin(wind.at_2000m.direction or 0)
         grid.addWidget(self.wind_fl08_speed, 2, 1)
         grid.addWidget(self.wind_fl08_dir, 2, 2)
 
-        grid.addWidget(QLabel("FL260 (8000m)"), 3, 0)
+        grid.addWidget(QLabel("8,000 m (FL262)"), 3, 0)
         self.wind_fl26_speed = _make_speed_spin(wind.at_8000m.speed or 0)
         self.wind_fl26_dir = _make_dir_spin(wind.at_8000m.direction or 0)
         grid.addWidget(self.wind_fl26_speed, 3, 1)

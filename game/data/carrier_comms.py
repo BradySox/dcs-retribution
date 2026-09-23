@@ -7,13 +7,14 @@ came out of the allocators: TACAN 1X with a random ident re-rolled every turn,
 ICLS channel 1, a Link 4 on a random inter-flight UHF like 255.0, and a fresh
 random ATC frequency each mission.
 
-These plans follow the pro-campaign "Mother card" convention (Raven One's
-HOMEPLATE row is the model): TACAN channel matches the hull number with a
-boat-name ident, ICLS is hull-keyed, Link 4 lives in the real ACLS 336 MHz
-band, and the ATC frequency is a stable, memorable UHF. Every value is a
-default, not a mandate — a channel already reserved (map beacon, another
-boat) falls back to the legacy allocator, and values stored on the control
-point (user-set or persisted from an earlier turn) always win.
+These plans follow the pro-campaign "Mother card" convention (the HOMEPLATE
+row on a paid FA-18C campaign's kneeboard is the model): TACAN channel
+matches the hull number with a boat-name ident, ICLS is hull-keyed, Link 4
+lives in the real ACLS 336 MHz band, and the ATC frequency is a stable,
+memorable UHF. Every value is a default, not a mandate — a channel already
+reserved (map beacon, another boat) falls back to the legacy allocator, and
+values stored on the control point (user-set or persisted from an earlier
+turn) always win.
 
 Keyed by the pydcs ship type id. Hulls without an entry (mod carriers) keep
 the legacy allocator behavior end to end.

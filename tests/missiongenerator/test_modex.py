@@ -14,7 +14,11 @@ from types import SimpleNamespace
 from typing import Any
 from uuid import uuid4
 
-from game.missiongenerator.aircraft.modex import MODEX_AIRCRAFT_IDS, ModexAllocator
+from game.missiongenerator.aircraft.modex import (
+    MODEX_AIRCRAFT_IDS,
+    ModexAllocator,
+    board_number_conflict,
+)
 
 
 def _squadron(dcs_id: str) -> Any:
@@ -24,14 +28,22 @@ def _squadron(dcs_id: str) -> Any:
     )
 
 
-def _game(*coalition_squadrons: list[Any]) -> Any:
+def _game(*coalition_squadrons: list[Any], flights: list[Any] | None = None) -> Any:
+    """``flights`` are the first coalition's fragged flights, one package."""
     coalitions = [
         SimpleNamespace(
-            air_wing=SimpleNamespace(iter_squadrons=lambda sqs=squadrons: iter(sqs))
+            air_wing=SimpleNamespace(iter_squadrons=lambda sqs=squadrons: iter(sqs)),
+            ato=SimpleNamespace(
+                packages=[SimpleNamespace(flights=flights or [])] if index == 0 else []
+            ),
         )
-        for squadrons in coalition_squadrons
+        for index, squadrons in enumerate(coalition_squadrons)
     ]
     return SimpleNamespace(coalitions=iter(coalitions))
+
+
+def _flight(squadron: Any, count: int, board_number: int | None) -> Any:
+    return SimpleNamespace(squadron=squadron, count=count, board_number=board_number)
 
 
 def _group(size: int) -> Any:
@@ -48,6 +60,9 @@ class _Country:
         taken = number in self.reserved
         self.reserved.append(number)
         return taken
+
+    def next_onboard_num(self) -> str:
+        return "555"
 
 
 def _numbers(group: Any) -> list[str]:
@@ -164,3 +179,82 @@ def test_curated_ids_exist_in_pydcs() -> None:
     }
     missing = MODEX_AIRCRAFT_IDS - known
     assert not missing, f"unknown pydcs plane id(s): {sorted(missing)}"
+
+
+def test_pinned_flight_wears_its_numbers_and_the_squadron_skips_them() -> None:
+    squadron = _squadron("FA-18C_hornet")
+    pinned = _flight(squadron, 2, 101)
+    allocator = ModexAllocator(_game([squadron], flights=[pinned]))
+    country = _Country()
+
+    pinned_group = _group(2)
+    other_group = _group(3)
+    allocator.assign(squadron, pinned_group, country, pinned)  # type: ignore[arg-type]
+    allocator.assign(squadron, other_group, country)  # type: ignore[arg-type]
+
+    assert _numbers(pinned_group) == ["101", "102"]
+    assert _numbers(other_group) == ["100", "103", "104"]
+
+
+def test_pinned_number_works_on_any_airframe() -> None:
+    viper = _squadron("F-16C_50")
+    pinned = _flight(viper, 2, 7)
+    allocator = ModexAllocator(_game([viper], flights=[pinned]))
+
+    group = _group(2)
+    allocator.assign(viper, group, _Country(), pinned)  # type: ignore[arg-type]
+
+    assert _numbers(group) == ["007", "008"]
+
+
+def test_another_package_never_wears_a_pinned_number() -> None:
+    hornets = _squadron("FA-18C_hornet")
+    vipers = _squadron("F-16C_50")
+    pinned = _flight(hornets, 1, 999)
+    allocator = ModexAllocator(_game([hornets, vipers], flights=[pinned]))
+    country = _Country()
+
+    # pydcs dealt the Viper the pinned number at random: it is re-rolled.
+    viper_group = _group(1)
+    allocator.assign(vipers, viper_group, country)  # type: ignore[arg-type]
+
+    assert _numbers(viper_group) == ["555"]
+    # And the claim is fenced off from the country's random pool.
+    assert "999" in country.reserved
+
+
+def test_a_clash_left_by_a_resize_falls_back_for_the_later_flight() -> None:
+    squadron = _squadron("F-16C_50")
+    first = _flight(squadron, 2, 10)
+    second = _flight(squadron, 2, 11)  # 11 is first's wingman
+    allocator = ModexAllocator(_game([squadron], flights=[first, second]))
+
+    group = _group(2)
+    allocator.assign(squadron, group, _Country(), second)  # type: ignore[arg-type]
+
+    # 999 is the fake group's stock number; 11 is first's, so it is not reused.
+    assert _numbers(group) == ["999", "012"]
+
+
+def test_conflict_names_the_flight_holding_the_number() -> None:
+    squadron = _squadron("FA-18C_hornet")
+    holder = _flight(squadron, 4, 200)
+    flight = _flight(squadron, 2, None)
+
+    assert board_number_conflict(flight, 202, [holder, flight]) == (
+        202,
+        holder,
+    )
+    assert board_number_conflict(flight, 204, [holder, flight]) is None
+
+
+def test_conflict_ignores_the_flight_itself() -> None:
+    flight = _flight(_squadron("FA-18C_hornet"), 4, 300)
+
+    assert board_number_conflict(flight, 301, [flight]) is None
+
+
+def test_a_run_past_999_is_refused() -> None:
+    flight = _flight(_squadron("FA-18C_hornet"), 4, None)
+
+    assert board_number_conflict(flight, 998, []) == (1000, None)

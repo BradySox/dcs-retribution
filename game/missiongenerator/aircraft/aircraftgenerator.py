@@ -289,8 +289,9 @@ class AircraftGenerator:
                     )
                     group.uncontrolled = False
                     group.units[0].skill = Skill.Client
-                AircraftPainter(flight, group, self.livery_allocator).apply_livery()
+                # Number before paint: the livery follows the board number.
                 self.modex_allocator.assign(squadron, group, country)
+                AircraftPainter(flight, group, self.livery_allocator).apply_livery()
                 self.unit_map.add_aircraft(group, flight)
 
     def create_and_configure_flight(
@@ -310,7 +311,7 @@ class AircraftGenerator:
 
         # Tasked flights are generated before the untasked ramp aircraft, so
         # they take the low modexes (X00 up).
-        self.modex_allocator.assign(flight.squadron, group, country)
+        self.modex_allocator.assign(flight.squadron, group, country, flight)
 
         flight_data = FlightGroupConfigurator(
             flight,

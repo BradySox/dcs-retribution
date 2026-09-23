@@ -9,6 +9,7 @@ from game.ato import Flight
 from game.dcs.aircrafttype import AircraftType
 from game.factions import Faction
 from .liveryallocator import LiveryAllocator
+from .modex import MODEX_AIRCRAFT_IDS
 
 
 class AircraftPainter:
@@ -37,18 +38,22 @@ class AircraftPainter:
     def livery_from_squadron(self) -> Optional[str]:
         return self.flight.squadron.livery
 
-    def livery_from_squadron_set(self, member_uses_livery_set: bool) -> Optional[str]:
+    def livery_from_squadron_set(
+        self, member_uses_livery_set: bool, board_number: Optional[int] = None
+    ) -> Optional[str]:
         if not (
             self.flight.squadron.livery_set
             and (self.flight.squadron.use_livery_set or member_uses_livery_set)
         ):
             return None
         if self.livery_allocator is not None:
-            return self.livery_allocator.next_livery(self.flight.squadron)
+            return self.livery_allocator.next_livery(self.flight.squadron, board_number)
         return self.flight.squadron.random_round_robin_livery_from_set()
 
-    def determine_livery(self, member_uses_livery_set: bool) -> Optional[str]:
-        livery = self.livery_from_squadron_set(member_uses_livery_set)
+    def determine_livery(
+        self, member_uses_livery_set: bool, board_number: Optional[int] = None
+    ) -> Optional[str]:
+        livery = self.livery_from_squadron_set(member_uses_livery_set, board_number)
         if livery is not None:
             return livery
         if (livery := self.livery_from_squadron()) is not None:
@@ -61,12 +66,26 @@ class AircraftPainter:
 
     def apply_livery(self) -> None:
         for unit, member in zip(self.group.units, self.flight.iter_members()):
-            livery = self.determine_livery(member.use_livery_set)
+            livery = self.determine_livery(
+                member.use_livery_set, self._meaningful_board_number(unit.onboard_num)
+            )
             if not (livery or member.livery):
                 continue
             unit.livery_id = member.livery if member.livery else livery
             assert isinstance(unit.livery_id, str)
             unit.livery_id = unit.livery_id.lower()
+
+    def _meaningful_board_number(self, onboard_num: str) -> Optional[int]:
+        """The jet's modex when the livery should follow it: a sequenced
+        squadron or a pinned flight. Stamped before painting."""
+        sequenced = self.flight.unit_type.dcs_unit_type.id in MODEX_AIRCRAFT_IDS
+        pinned = getattr(self.flight, "board_number", None) is not None
+        if not (sequenced or pinned):
+            return None
+        try:
+            return int(onboard_num)
+        except (TypeError, ValueError):
+            return None
 
 
 class AircraftPainterJtac:

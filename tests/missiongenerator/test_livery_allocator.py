@@ -1,8 +1,8 @@
-"""CAG-bird-first livery sequencing (see liveryallocator.py).
+"""Board-number-driven livery choice (see liveryallocator.py).
 
-The Tomcat's visible board number is its livery, so the order liveries are
-handed out is the modex order: the squadron's first jet of the mission wears
-the X00 CAG bird, every jet after it a line bird.
+The Tomcat's visible board number is its livery. A jet wears the livery painted
+with its own number when the set has one; the CAG / hi-vis livery goes to the
+X00 jet and to no other; every other jet cycles the line liveries.
 """
 
 from __future__ import annotations
@@ -11,8 +11,22 @@ from types import SimpleNamespace
 from typing import Any
 from uuid import uuid4
 
-from game.missiongenerator.aircraft.liveryallocator import LiveryAllocator
+import pytest
+
+from game.missiongenerator.aircraft.liveryallocator import (
+    LiveryAllocator,
+    is_cag_livery,
+    livery_modex,
+)
 from game.squadrons.squadron import Squadron
+
+VF103 = [
+    "VF-103 2004 AA100 BuNo 162918",
+    "VF-103 2004 AA101 BuNo 162705",
+    "VF-103 2004 AA103 BuNo 163217",
+    "VF-103 2004 AA105 BuNo 163229",
+]
+VF143 = ["VF-143 2004 AG100 BuNo 163220", "VF-143 2004 AG106 BuNo 161434"]
 
 
 def _squadron(*liveries: str, pool: list[str] | None = None) -> Any:
@@ -27,68 +41,95 @@ def _squadron(*liveries: str, pool: list[str] | None = None) -> Any:
     return squadron
 
 
-def _take(allocator: LiveryAllocator, squadron: Any, count: int) -> list[str | None]:
-    return [allocator.next_livery(squadron) for _ in range(count)]
+def _for_numbers(squadron: Any, numbers: list[int | None]) -> list[str | None]:
+    allocator = LiveryAllocator()
+    return [allocator.next_livery(squadron, number) for number in numbers]
 
 
-def test_cag_bird_flies_once_then_line_jets_cycle() -> None:
-    squadron = _squadron("AA100", "AA101", "AA103", "AA105")
+def _modexes(liveries: list[str | None]) -> list[int | None]:
+    return [None if l is None else livery_modex(l) for l in liveries]
 
-    assert _take(LiveryAllocator(), squadron, 8) == [
-        "AA100",  # the CAG bird, once for the whole mission
-        "AA101",
-        "AA103",
-        "AA105",
-        "AA101",
-        "AA103",
-        "AA105",
-        "AA101",
+
+@pytest.mark.parametrize(
+    "livery,number,cag",
+    [
+        ("VF-103 2004 AA100 BuNo 162918", 100, True),
+        ("VF-11 2004 AG201 BuNo 162912", 201, False),
+        ("VF-32 Fighting Swordsmen 100 (2000)", 100, True),
+        ("VF-143 Pukin Dogs CAG", None, True),
+        ("VFA-83 High Vis", None, True),
+        ("VFA-83 Low Vis", None, False),
+    ],
+)
+def test_livery_reading(livery: str, number: int | None, cag: bool) -> None:
+    assert livery_modex(livery) == number
+    assert is_cag_livery(livery) is cag
+
+
+def test_a_jet_wears_the_livery_painted_with_its_number() -> None:
+    worn = _for_numbers(_squadron(*VF103), [100, 101, 102, 103, 104, 105])
+
+    # 102 and 104 have no livery of their own: they take line jets in turn.
+    assert _modexes(worn) == [100, 101, 101, 103, 103, 105]
+
+
+def test_the_cag_bird_never_flies_on_a_line_jet() -> None:
+    """VF-143 ships one CAG bird and one line jet: the line jets share AG106."""
+    worn = _for_numbers(_squadron(*VF143), [100, 101, 102, 103, 104])
+
+    assert _modexes(worn) == [100, 106, 106, 106, 106]
+
+
+def test_the_x00_jet_takes_a_cag_livery_with_no_number() -> None:
+    squadron = _squadron("VF-143 Pukin Dogs CAG", "VF-143 Pukin Dogs Line")
+
+    assert _for_numbers(squadron, [200, 201]) == [
+        "VF-143 Pukin Dogs CAG",
+        "VF-143 Pukin Dogs Line",
     ]
+
+
+def test_a_pinned_run_wears_its_own_numbers() -> None:
+    worn = _for_numbers(_squadron(*VF103), [103, 104, 105])
+
+    assert _modexes(worn) == [103, 101, 105]
+
+
+def test_without_a_number_the_first_jet_stands_in_for_x00() -> None:
+    worn = _for_numbers(_squadron(*VF103), [None, None, None, None, None])
+
+    assert _modexes(worn) == [100, 101, 103, 105, 101]
+
+
+def test_a_set_of_only_cag_liveries_leaves_line_jets_to_the_fallback() -> None:
+    squadron = _squadron("VF-143 2004 AG100 BuNo 163220")
+
+    assert _for_numbers(squadron, [100, 101]) == [
+        "VF-143 2004 AG100 BuNo 163220",
+        None,
+    ]
+
+
+def test_a_set_with_no_cag_livery_cycles_it_whole() -> None:
+    squadron = _squadron(
+        "VF-101 2004 AD101 BuNo 162920", "VF-101 2004 AD107 BuNo 162910"
+    )
+
+    assert _modexes(_for_numbers(squadron, [100, 102, 103])) == [101, 107, 101]
 
 
 def test_sequence_is_per_squadron() -> None:
     allocator = LiveryAllocator()
-    first = _squadron("AA100", "AA101")
-    second = _squadron("AC100", "AC101")
+    first = _squadron("A Line 1", "A Line 2")
+    second = _squadron("B Line 1", "B Line 2")
 
-    assert allocator.next_livery(first) == "AA100"
-    assert allocator.next_livery(second) == "AC100"
-    assert allocator.next_livery(first) == "AA101"
-    assert allocator.next_livery(second) == "AC101"
-
-
-def test_two_livery_squadron_alternates_instead_of_reserving_a_cag_bird() -> None:
-    """Reserving one of two would leave every later jet on the single survivor."""
-    squadron = _squadron("AD101", "AD107")
-
-    assert _take(LiveryAllocator(), squadron, 5) == [
-        "AD101",
-        "AD107",
-        "AD101",
-        "AD107",
-        "AD101",
-    ]
-
-
-def test_single_livery_squadron_repeats_rather_than_returning_none() -> None:
-    squadron = _squadron("Only Livery")
-
-    assert _take(LiveryAllocator(), squadron, 3) == [
-        "Only Livery",
-        "Only Livery",
-        "Only Livery",
-    ]
+    assert allocator.next_livery(first) == "A Line 1"
+    assert allocator.next_livery(second) == "B Line 1"
+    assert allocator.next_livery(first) == "A Line 2"
 
 
 def test_squadron_without_a_livery_set_is_left_alone() -> None:
     assert LiveryAllocator().next_livery(_squadron()) is None
-
-
-def test_a_mid_rotation_save_keeps_every_livery() -> None:
-    """The old random round-robin drained the set into ``_livery_pool``."""
-    squadron = _squadron("AA105", pool=["AA100", "AA101"])
-
-    assert _take(LiveryAllocator(), squadron, 3) == ["AA105", "AA100", "AA101"]
 
 
 def test_ordered_livery_set_rejoins_a_drained_pool() -> None:

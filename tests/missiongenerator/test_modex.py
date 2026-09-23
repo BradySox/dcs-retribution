@@ -17,7 +17,8 @@ from uuid import uuid4
 from game.missiongenerator.aircraft.modex import (
     MODEX_AIRCRAFT_IDS,
     ModexAllocator,
-    board_number_conflict,
+    max_board_number_lead,
+    take_board_number,
 )
 
 
@@ -205,7 +206,9 @@ def test_a_pin_off_the_navy_set_is_ignored() -> None:
     allocator.assign(viper, group, _Country(), pinned)  # type: ignore[arg-type]
 
     assert _numbers(group) == ["999", "999"]
-    assert board_number_conflict(_flight(viper, 1, None), 7, [pinned]) is None
+    # A pin off the Navy set holds nothing, so it is never moved.
+    assert take_board_number(_flight(viper, 1, None), 7, [pinned]) == []
+    assert pinned.board_number == 7
 
 
 def test_another_package_never_wears_a_pinned_number() -> None:
@@ -237,25 +240,64 @@ def test_a_clash_left_by_a_resize_falls_back_for_the_later_flight() -> None:
     assert _numbers(group) == ["100", "012"]
 
 
-def test_conflict_names_the_flight_holding_the_number() -> None:
+def test_taking_a_pinned_number_moves_the_holder_to_the_next_free_run() -> None:
     squadron = _squadron("FA-18C_hornet")
     holder = _flight(squadron, 4, 200)
     flight = _flight(squadron, 2, None)
 
-    assert board_number_conflict(flight, 202, [holder, flight]) == (
-        202,
-        holder,
-    )
-    assert board_number_conflict(flight, 204, [holder, flight]) is None
+    moves = take_board_number(flight, 202, [holder, flight])
+
+    assert flight.board_number == 202
+    # 200-203 overlaps 202-203; the next free four-run up is 204-207, not
+    # 198-201, which would sit in the 100 squadron's block.
+    assert holder.board_number == 204
+    assert moves == [(holder, 200, 204)]
 
 
-def test_conflict_ignores_the_flight_itself() -> None:
+def test_a_moved_flight_never_lands_on_a_third_flight() -> None:
+    squadron = _squadron("FA-18C_hornet")
+    holder = _flight(squadron, 2, 100)
+    bystander = _flight(squadron, 2, 102)
+    flight = _flight(squadron, 1, None)
+
+    take_board_number(flight, 101, [holder, bystander, flight])
+
+    assert bystander.board_number == 102
+    # 101-103 are taken, so the next free two-run above 100 is 104-105.
+    assert holder.board_number == 104
+
+
+def test_a_holder_with_no_room_above_moves_down() -> None:
+    squadron = _squadron("FA-18C_hornet")
+    holder = _flight(squadron, 2, 998)
+    flight = _flight(squadron, 1, None)
+
+    take_board_number(flight, 999, [holder, flight])
+
+    # Only 999 is taken; 998-999 cannot stay, so 997-998.
+    assert holder.board_number == 997
+
+
+def test_a_free_number_moves_nobody() -> None:
+    squadron = _squadron("FA-18C_hornet")
+    other = _flight(squadron, 4, 200)
+    flight = _flight(squadron, 2, None)
+
+    assert take_board_number(flight, 204, [other, flight]) == []
+    assert other.board_number == 200
+
+
+def test_the_taking_flight_is_not_its_own_holder() -> None:
     flight = _flight(_squadron("FA-18C_hornet"), 4, 300)
 
-    assert board_number_conflict(flight, 301, [flight]) is None
+    assert take_board_number(flight, 301, [flight]) == []
+    assert flight.board_number == 301
 
 
-def test_a_run_past_999_is_refused() -> None:
+def test_a_lead_past_the_top_is_pulled_back_so_the_run_fits() -> None:
     flight = _flight(_squadron("FA-18C_hornet"), 4, None)
 
-    assert board_number_conflict(flight, 998, []) == (1000, None)
+    take_board_number(flight, 998, [])
+
+    assert max_board_number_lead(4) == 996
+    assert flight.board_number == 996

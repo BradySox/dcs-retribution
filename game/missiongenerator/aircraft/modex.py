@@ -16,7 +16,9 @@ campaign does not model individual airframes, so numbering is per-mission
 (deterministic within a mission, not sticky to a pilot across turns). Every other airframe keeps the stock pydcs number.
 
 A player may pin a Hornet or Tomcat flight's board number on the payload tab
-(``Flight.board_number``, the lead's number; wingmen follow in order). Pinned
+(``Flight.board_number``, the lead's number; wingmen follow in order). Taking
+a number another flight has pinned moves that flight to the next free run
+(:func:`take_board_number`). Pinned
 numbers are claimed per coalition before anything is stamped: the flight wears
 them, the squadron sequences skip them, and a random pydcs
 number that lands on one is re-rolled, so no other package wears it.
@@ -80,25 +82,50 @@ def pinned_board_numbers(flight: Flight) -> list[int]:
     return [lead + offset for offset in range(flight.count)]
 
 
-def board_number_conflict(
-    flight: Flight, lead: int, others: Iterable[Flight]
-) -> Optional[tuple[int, Optional[Flight]]]:
-    """The first number of ``lead``'s run that is unusable, and who holds it.
+def max_board_number_lead(count: int) -> int:
+    """The highest lead number whose run of ``count`` still fits in three digits."""
+    return MAX_BOARD_NUMBER - max(count, 1) + 1
 
-    A number past 999 comes back with no holder. ``others`` is every flight the
-    run must not share a number with -- the coalition's ATO.
+
+def _next_free_lead(count: int, near: int, taken: set[int]) -> Optional[int]:
+    """The first free run of ``count`` at or above ``near``, else the nearest below.
+
+    Upward first keeps a moved flight inside its own hundred block.
     """
-    for number in range(lead, lead + flight.count):
-        if number > MAX_BOARD_NUMBER:
-            return number, None
-    run = set(range(lead, lead + flight.count))
-    for other in others:
-        if other is flight:
-            continue
-        taken = run.intersection(pinned_board_numbers(other))
-        if taken:
-            return min(taken), other
+    top = max_board_number_lead(count)
+    upward = range(max(near, MIN_BOARD_NUMBER), top + 1)
+    downward = range(min(near, top + 1) - 1, MIN_BOARD_NUMBER - 1, -1)
+    for lead in (*upward, *downward):
+        if taken.isdisjoint(range(lead, lead + count)):
+            return lead
     return None
+
+
+def take_board_number(
+    flight: Flight, lead: int, others: Iterable[Flight]
+) -> list[tuple[Flight, int, Optional[int]]]:
+    """Pin ``lead`` on ``flight``; any pinned flight it overlaps moves aside.
+
+    A displaced flight keeps a pin, moved to the next free run above its old
+    one, so no third flight is disturbed. ``others`` is the coalition's ATO. Returns
+    each move as (flight, old lead, new lead); None means no run was free.
+    """
+    lead = max(MIN_BOARD_NUMBER, min(lead, max_board_number_lead(flight.count)))
+    flight.board_number = lead
+    others = [other for other in others if other is not flight]
+    run = set(range(lead, lead + flight.count))
+    displaced = [o for o in others if run.intersection(pinned_board_numbers(o))]
+    moving = {id(o) for o in displaced}
+    taken = run.union(*(pinned_board_numbers(o) for o in others if id(o) not in moving))
+    moves: list[tuple[Flight, int, Optional[int]]] = []
+    for other in displaced:
+        old = other.board_number
+        assert old is not None
+        new = _next_free_lead(other.count, old, taken)
+        other.board_number = new
+        taken.update(pinned_board_numbers(other))
+        moves.append((other, old, new))
+    return moves
 
 
 def _tomcats_first(squadron: Squadron) -> int:
@@ -141,8 +168,8 @@ class ModexAllocator:
             for flight in package.flights:
                 numbers: list[Optional[int]] = []
                 for number in pinned_board_numbers(flight):
-                    # The payload tab refuses clashes; a flight resized after its
-                    # number was set can still overlap, and the first claim wins.
+                    # The payload tab moves clashing pins aside; a flight resized
+                    # after pinning can still overlap, and the first claim wins.
                     if number > MAX_BOARD_NUMBER or number in claims:
                         numbers.append(None)
                     else:

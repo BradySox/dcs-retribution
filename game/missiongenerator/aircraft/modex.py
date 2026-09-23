@@ -15,10 +15,10 @@ generation order: tasked flights first, then the untasked ramp aircraft. The
 campaign does not model individual airframes, so numbering is per-mission
 (deterministic within a mission, not sticky to a pilot across turns). Every other airframe keeps the stock pydcs number.
 
-A player may pin a flight's board number on the payload tab
+A player may pin a Hornet or Tomcat flight's board number on the payload tab
 (``Flight.board_number``, the lead's number; wingmen follow in order). Pinned
 numbers are claimed per coalition before anything is stamped: the flight wears
-them on any airframe, the squadron sequences skip them, and a random pydcs
+them, the squadron sequences skip them, and a random pydcs
 number that lands on one is re-rolled, so no other package wears it.
 """
 
@@ -67,10 +67,15 @@ MIN_BOARD_NUMBER = 1
 MAX_BOARD_NUMBER = 999
 
 
+def is_modex_flight(flight: Flight) -> bool:
+    """Navy only: the Hornet and Tomcat flights that wear sequenced modexes."""
+    return flight.squadron.aircraft.dcs_unit_type.id in MODEX_AIRCRAFT_IDS
+
+
 def pinned_board_numbers(flight: Flight) -> list[int]:
     """The numbers a flight's pinned board number covers, lead first."""
     lead = getattr(flight, "board_number", None)
-    if lead is None:
+    if lead is None or not is_modex_flight(flight):
         return []
     return [lead + offset for offset in range(flight.count)]
 

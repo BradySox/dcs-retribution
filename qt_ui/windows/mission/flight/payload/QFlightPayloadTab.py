@@ -20,6 +20,7 @@ from game.missiongenerator.aircraft.modex import (
     MAX_BOARD_NUMBER,
     MIN_BOARD_NUMBER,
     board_number_conflict,
+    is_modex_flight,
 )
 from qt_ui.blocksignals import block_signals
 from qt_ui.widgets.QLabeledWidget import QLabeledWidget
@@ -258,8 +259,11 @@ class QFlightPayloadTab(QFrame):
         hbox.addWidget(self.livery_selector)
         layout.addLayout(hbox)
 
-        self.board_number_selector = BoardNumberSelector(self.flight)
-        layout.addLayout(self.board_number_selector)
+        # Navy only: the Hornets and Tomcats that wear sequenced modexes.
+        self.board_number_selector: BoardNumberSelector | None = None
+        if is_modex_flight(self.flight):
+            self.board_number_selector = BoardNumberSelector(self.flight)
+            layout.addLayout(self.board_number_selector)
 
         scroll_content = QWidget()
         scrolling_layout = QVBoxLayout()
@@ -321,7 +325,8 @@ class QFlightPayloadTab(QFrame):
 
     def resize_for_flight(self) -> None:
         self.member_selector.setMaximum(self.flight.count - 1)
-        self.board_number_selector.refresh()
+        if self.board_number_selector is not None:
+            self.board_number_selector.refresh()
 
     def reload_from_flight(self) -> None:
         self.loadout_selector.setCurrentText(

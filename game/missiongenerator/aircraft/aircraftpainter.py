@@ -46,7 +46,8 @@ class AircraftPainter:
             and (self.flight.squadron.use_livery_set or member_uses_livery_set)
         ):
             return None
-        if self.livery_allocator is not None:
+        # Navy only: other squadrons keep the random round-robin.
+        if self.livery_allocator is not None and self._is_modex_squadron():
             return self.livery_allocator.next_livery(self.flight.squadron, board_number)
         return self.flight.squadron.random_round_robin_livery_from_set()
 
@@ -75,12 +76,12 @@ class AircraftPainter:
             assert isinstance(unit.livery_id, str)
             unit.livery_id = unit.livery_id.lower()
 
+    def _is_modex_squadron(self) -> bool:
+        return self.flight.unit_type.dcs_unit_type.id in MODEX_AIRCRAFT_IDS
+
     def _meaningful_board_number(self, onboard_num: str) -> Optional[int]:
-        """The jet's modex when the livery should follow it: a sequenced
-        squadron or a pinned flight. Stamped before painting."""
-        sequenced = self.flight.unit_type.dcs_unit_type.id in MODEX_AIRCRAFT_IDS
-        pinned = getattr(self.flight, "board_number", None) is not None
-        if not (sequenced or pinned):
+        """The jet's modex, stamped before painting; None off the Navy set."""
+        if not self._is_modex_squadron():
             return None
         try:
             return int(onboard_num)

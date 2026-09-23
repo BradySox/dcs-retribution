@@ -141,3 +141,26 @@ def test_ordered_livery_set_rejoins_a_drained_pool() -> None:
         "AA100",
         "AA101",
     ]
+
+
+@pytest.mark.parametrize(
+    "dcs_id,uses_allocator", [("F-14BU", True), ("F-15ESE", False)]
+)
+def test_only_navy_squadrons_use_the_allocator(
+    dcs_id: str, uses_allocator: bool
+) -> None:
+    """Every other squadron keeps the random round-robin."""
+    from game.missiongenerator.aircraft.aircraftpainter import AircraftPainter
+
+    squadron = _squadron(*VF143)
+    squadron.use_livery_set = True
+    squadron.random_round_robin_livery_from_set = lambda: "round-robin"
+    flight = SimpleNamespace(
+        squadron=squadron,
+        unit_type=SimpleNamespace(dcs_unit_type=SimpleNamespace(id=dcs_id)),
+    )
+    painter = AircraftPainter(flight, SimpleNamespace(units=[]), LiveryAllocator())  # type: ignore[arg-type]
+
+    livery = painter.livery_from_squadron_set(True, 100)
+
+    assert (livery != "round-robin") is uses_allocator

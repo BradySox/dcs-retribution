@@ -196,7 +196,7 @@ def test_pinned_flight_wears_its_numbers_and_the_squadron_skips_them() -> None:
     assert _numbers(other_group) == ["100", "103", "104"]
 
 
-def test_pinned_number_works_on_any_airframe() -> None:
+def test_a_pin_off_the_navy_set_is_ignored() -> None:
     viper = _squadron("F-16C_50")
     pinned = _flight(viper, 2, 7)
     allocator = ModexAllocator(_game([viper], flights=[pinned]))
@@ -204,7 +204,8 @@ def test_pinned_number_works_on_any_airframe() -> None:
     group = _group(2)
     allocator.assign(viper, group, _Country(), pinned)  # type: ignore[arg-type]
 
-    assert _numbers(group) == ["007", "008"]
+    assert _numbers(group) == ["999", "999"]
+    assert board_number_conflict(_flight(viper, 1, None), 7, [pinned]) is None
 
 
 def test_another_package_never_wears_a_pinned_number() -> None:
@@ -224,7 +225,7 @@ def test_another_package_never_wears_a_pinned_number() -> None:
 
 
 def test_a_clash_left_by_a_resize_falls_back_for_the_later_flight() -> None:
-    squadron = _squadron("F-16C_50")
+    squadron = _squadron("FA-18C_hornet")
     first = _flight(squadron, 2, 10)
     second = _flight(squadron, 2, 11)  # 11 is first's wingman
     allocator = ModexAllocator(_game([squadron], flights=[first, second]))
@@ -232,8 +233,8 @@ def test_a_clash_left_by_a_resize_falls_back_for_the_later_flight() -> None:
     group = _group(2)
     allocator.assign(squadron, group, _Country(), second)  # type: ignore[arg-type]
 
-    # 999 is the fake group's stock number; 11 is first's, so it is not reused.
-    assert _numbers(group) == ["999", "012"]
+    # 11 is first's, so that member falls back to the squadron sequence.
+    assert _numbers(group) == ["100", "012"]
 
 
 def test_conflict_names_the_flight_holding_the_number() -> None:

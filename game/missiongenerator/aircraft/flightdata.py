@@ -16,6 +16,7 @@ if TYPE_CHECKING:
     from game.radio.radios import RadioFrequency
     from game.runways import RunwayData
     from game.theater.player import Player
+    from game.utils import Speed
 
 
 @dataclass(frozen=True)
@@ -79,6 +80,10 @@ class FlightData:
     frequency_to_channel_map: dict[RadioFrequency, ChannelAssignment] = field(
         init=False, default_factory=dict
     )
+
+    #: Planned on-station speed when this flight flies a racetrack (BARCAP,
+    #: TARCAP, AEW&C, tanker); None for point-to-point plans.
+    patrol_speed: Optional[Speed] = None
 
     #: Which sections the flight's DTC cartridge carries. Every section is on
     #: by default; the campaign-wide setting is the switch.

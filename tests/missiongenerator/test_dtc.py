@@ -35,11 +35,15 @@ from game.missiongenerator.dtc.common import (
     sanitize_short_name,
     seconds_of_day,
     support_boxes,
+    support_half_width,
+    support_tracks,
 )
 from game.missiongenerator.dtc.generator import CARTRIDGE_BUILDERS
 from game.missiongenerator.dtc.options import DtcOptions
 from game.missiongenerator.dtc.hornet import build_hornet_cartridge
 from game.missiongenerator.dtc.viper import build_viper_cartridge
+from game.settings.settings import DtcCartridgeLoading
+from game.utils import Speed, knots
 
 
 class Pt:
@@ -67,6 +71,7 @@ class _FakeUnit:
     def __init__(self) -> None:
         self.dtc_cartridges: list[dict[str, Any]] = []
         self.dtc_autoload = False
+        self.radio: Optional[dict[int, dict[str, dict[int, float]]]] = None
 
     def add_dtc_cartridge(
         self, name: str, default: bool = True, autoload: bool = True
@@ -145,6 +150,7 @@ def _flight(
     channel_map: Optional[dict[Any, Any]] = None,
     arrival: Optional[Any] = None,
     dtc_options: Optional[DtcOptions] = None,
+    patrol_speed: Optional[Speed] = None,
 ) -> Any:
     intra = _freq(258.5)
     return SimpleNamespace(
@@ -161,10 +167,17 @@ def _flight(
         arrival=arrival if arrival is not None else _runway("Kutaisi", 259.0),
         divert=None,
         dtc_options=dtc_options if dtc_options is not None else DtcOptions(),
+        patrol_speed=patrol_speed,
     )
 
 
-def _support_flight(flight_type: FlightType, callsign: str, start: Pt, end: Pt) -> Any:
+def _support_flight(
+    flight_type: FlightType,
+    callsign: str,
+    start: Pt,
+    end: Pt,
+    patrol_speed: Optional[Speed] = None,
+) -> Any:
     waypoints = [
         _waypoint(
             "RACETRACK START",
@@ -181,6 +194,7 @@ def _support_flight(flight_type: FlightType, callsign: str, start: Pt, end: Pt) 
         flight_type=flight_type,
         clients=0,
         waypoints=waypoints,
+        patrol_speed=patrol_speed,
     )
 
 
@@ -194,9 +208,13 @@ def _mission_data(flights: list[Any], carriers: Optional[list[Any]] = None) -> A
     )
 
 
-def _game(*, dtc_on: bool = True, controlpoints: Optional[list[Any]] = None) -> Any:
+def _game(
+    *,
+    loading: DtcCartridgeLoading = DtcCartridgeLoading.PILOT,
+    controlpoints: Optional[list[Any]] = None,
+) -> Any:
     return SimpleNamespace(
-        settings=SimpleNamespace(dtc_data_cartridges=dtc_on),
+        settings=SimpleNamespace(dtc_cartridge_loading=loading),
         conditions=SimpleNamespace(start_time=datetime(1988, 7, 15, 7, 0)),
         theater=SimpleNamespace(
             terrain=SimpleNamespace(name="Caucasus"),
@@ -336,6 +354,10 @@ def _hornet_fixture() -> tuple[Any, Any, Any]:
     mission_data.awacs = [
         SimpleNamespace(callsign="Overlord 1-1", freq=awacs_freq, group_name="ovl")
     ]
+    flight.client_units[0].radio = {
+        1: {"channels": {1: 258.5, 2: 251.0, 3: 304.25}},
+        2: {"channels": {}},
+    }
     game = _game(controlpoints=[_sam_cp()])
     return flight, mission_data, game
 
@@ -377,8 +399,15 @@ def test_hornet_cartridge_shape() -> None:
     assert nav_settings["ACLS"] == {"Frequency": 336.4, "OnOff": True}
     assert nav_settings["Home_Waypoint"] == {"FPAS_HOME_WP": 2}
 
-    # No COMM section: the presets reach the jet through the miz.
-    assert "COMM" not in data
+    # COMM mirrors the unit's presets and names each channel after what it
+    # tunes; a channel the allocator did not set keeps the stock default.
+    comm1 = data["COMM"]["COMM1"]
+    assert comm1["Channel_1"] == {"frequency": 258.5, "modulation": 0, "name": "WIZAR"}
+    assert comm1["Channel_2"]["name"] == "OVERL"
+    assert comm1["Channel_3"]["name"] == "ARR"
+    assert comm1["Channel_4"] == {"frequency": 256.0, "modulation": 0, "name": "CH 4"}
+    assert data["COMM"]["COMM2"]["Channel_1"]["frequency"] == 305.0
+    assert data["COMM"]["mirror_COMM1"] is False
 
     # SA: the tanker racetrack, the SAM ring, styles visible. The COLT CAP
     # station is another flight's and stays off the page; this strike plan
@@ -871,7 +900,8 @@ def test_generator_builds_only_blue_client_supported_flights(
     ]
     assert len(generator.cartridges) == 2
     # Bound to the clients and written into the mission under the same name.
-    assert flights[0].client_units[0].dtc_autoload is True
+    # The pilot loads it by default.
+    assert flights[0].client_units[0].dtc_autoload is False
     assert flights[0].client_units[0].dtc_cartridges[0]["name"] == built[0]
     assert set(generator.mission.dtc_cartridges) == set(built)
 
@@ -882,9 +912,21 @@ def test_generator_respects_the_setting(monkeypatch: pytest.MonkeyPatch) -> None
         "FA-18C_hornet",
         lambda *args: pytest.fail("builder must not run when the setting is off"),
     )
-    generator = _generator(_game(dtc_on=False), [_flight()])
+    generator = _generator(_game(loading=DtcCartridgeLoading.OFF), [_flight()])
     generator.generate()
     assert generator.cartridges == []
+
+
+def test_generator_loads_at_spawn_when_set(monkeypatch: pytest.MonkeyPatch) -> None:
+    def fake_builder(f: Any, md: Any, g: Any, name: str) -> DtcCartridge:
+        return DtcCartridge(name, "FA-18C_hornet", "Caucasus", {})
+
+    monkeypatch.setitem(CARTRIDGE_BUILDERS, "FA-18C_hornet", fake_builder)
+    flights = [_flight(), _flight(dtc_options=DtcOptions(auto_load=False))]
+    _generator(_game(loading=DtcCartridgeLoading.SPAWN), flights).generate()
+    assert flights[0].client_units[0].dtc_autoload is True
+    # A per-flight choice wins over the campaign setting.
+    assert flights[1].client_units[0].dtc_autoload is False
 
 
 def test_generator_survives_a_builder_failure(
@@ -908,7 +950,7 @@ def test_per_flight_override_beats_the_campaign_setting(
     monkeypatch.setitem(CARTRIDGE_BUILDERS, "FA-18C_hornet", fake_builder)
     # Campaign OFF, flight forced ON -> builds.
     generator = _generator(
-        _game(dtc_on=False),
+        _game(loading=DtcCartridgeLoading.OFF),
         [_flight(callsign="Force On", dtc_options=DtcOptions(enabled=True))],
     )
     generator.generate()
@@ -943,7 +985,7 @@ def test_all_sections_off_builds_no_cartridge(
 def test_hornet_sections_are_omitted_when_off() -> None:
     flight, mission_data, game = _hornet_fixture()
     flight.dtc_options = DtcOptions(
-        route=False, friendly_orbits=False, threat_rings=False
+        comms=False, route=False, friendly_orbits=False, threat_rings=False
     )
     cartridge = build_hornet_cartridge(flight, mission_data, game, "Trimmed")
     data = json.loads(cartridge.to_json())["data"]
@@ -1216,6 +1258,32 @@ def test_support_box_follows_the_orbit_course(monkeypatch: pytest.MonkeyPatch) -
     ys = sorted({round(y, 3) for _, y in points})
     assert xs == [-half_width, half_width]
     assert ys == [-(10000.0 + half_width), 10000.0 + half_width]
+
+
+def test_support_box_width_follows_the_orbit_speed() -> None:
+    """A tanker's box is as wide as the orbit it flies: a 20-degree turn at its
+    orbit speed plus 3 NM each side, never under 2 NM."""
+    fast = _support_flight(
+        FlightType.REFUELING,
+        "Texaco 1",
+        Pt(0, 0),
+        Pt(20000, 0),
+        patrol_speed=knots(430),
+    )
+    tracks = support_tracks(_mission_data([fast]))
+    speed = knots(430).meters_per_second
+    turn = speed * speed / (9.81 * math.tan(math.radians(20.0)))
+    assert tracks[0].half_width_m == pytest.approx(turn + 3 * 1852.0)
+    ((_, points),) = support_boxes(_mission_data([fast]), 3)
+    ys = sorted({round(y, 3) for _, y in points})
+    assert ys == [round(-(turn + 3 * 1852.0), 3), round(turn + 3 * 1852.0, 3)]
+
+    slow = _support_flight(
+        FlightType.REFUELING, "Arco 1", Pt(0, 0), Pt(20000, 0), patrol_speed=knots(1)
+    )
+    assert support_half_width(slow) == pytest.approx(3 * 1852.0, rel=1e-3)
+    # No orbit speed: the fixed default box.
+    assert support_half_width(_flight()) is None
 
 
 def test_viper_draws_the_tanker_boxes_on_the_later_line_sets(

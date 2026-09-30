@@ -147,6 +147,11 @@ class FlightGroupConfigurator:
             self.flight.flight_plan.waypoints,
         )
 
+        flight_plan = self.flight.flight_plan
+        patrol_speed = (
+            flight_plan.patrol_speed if flight_plan.is_patrol(flight_plan) else None
+        )
+
         flight_data = FlightData(
             package=self.flight.package,
             aircraft_type=self.flight.unit_type,
@@ -169,6 +174,7 @@ class FlightGroupConfigurator:
             joker_fuel=bingo_estimator.estimate_joker(),
             custom_name=self.flight.custom_name,
             laser_codes=laser_codes,
+            patrol_speed=patrol_speed,
         )
 
         self.register_escort_leash()

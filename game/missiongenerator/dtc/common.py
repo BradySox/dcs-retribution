@@ -23,6 +23,7 @@ if TYPE_CHECKING:
     from game.ato.flightwaypoint import FlightWaypoint
     from game.missiongenerator.aircraft.flightdata import FlightData
     from game.missiongenerator.missiondata import MissionData
+    from game.radio.radios import RadioFrequency
 
 #: Route-sequence default speed the ME uses when a leg speed is unknown (km/h).
 DEFAULT_LEG_SPEED_KMH = 463.0
@@ -66,6 +67,29 @@ def short_callsign(callsign: str) -> str:
     """First word of a callsign, sanitized ("Arco 1-1" -> "ARCO")."""
     first = callsign.split()[0] if callsign.split() else callsign
     return sanitize_short_name(first)
+
+
+def frequency_labels(flight: FlightData, mission_data: MissionData) -> dict[float, str]:
+    """A short name, keyed by MHz, for every frequency the channel allocator may
+    have preset: the one thing the Hornet's COMM section adds over the miz."""
+    labels: dict[float, str] = {}
+
+    def put(freq: Optional[RadioFrequency], label: str) -> None:
+        if freq is not None:
+            labels.setdefault(round(freq.mhz, 3), sanitize_short_name(label))
+
+    put(flight.intra_flight_channel, short_callsign(flight.callsign))
+    for info in [*mission_data.awacs, *mission_data.tankers]:
+        put(info.freq, short_callsign(info.callsign))
+    for jtac in mission_data.jtacs:
+        put(jtac.freq, "JTAC")
+    put(flight.package.frequency, "PKG")
+    put(flight.departure.atc, "DEP")
+    if flight.arrival != flight.departure:
+        put(flight.arrival.atc, "ARR")
+    if flight.divert is not None:
+        put(flight.divert.atc, "DVT")
+    return labels
 
 
 def seconds_of_day(game: Game, when: Optional[datetime]) -> int:
@@ -173,6 +197,8 @@ class SupportTrack:
     end: Point
     #: The orbit's planned altitude, metres MSL (0 when the plan is AGL).
     altitude_m: float = 0.0
+    #: Half-width of the box drawn around the orbit; None for the default.
+    half_width_m: Optional[float] = None
 
     @property
     def center(self) -> tuple[float, float]:
@@ -229,6 +255,7 @@ def _tracks_of_types(
                 start=start,
                 end=end,
                 altitude_m=_orbit_altitude(flight),
+                half_width_m=support_half_width(flight),
             )
         )
     return tracks
@@ -311,6 +338,24 @@ def flot_segments(game: Game) -> list[tuple[str, list[tuple[float, float]]]]:
 #: room the turns need at each end.
 SUPPORT_ORBIT_DIAMETER_M = 5 * 1852.0
 
+#: The AI turns shallow at the end of a support leg and overshoots it: tankers
+#: and AWACS ran 14-19 km off the leg centreline in a flown test. A 20-degree
+#: turn radius at the orbit speed plus 3 NM covers that; 2 NM is the floor.
+SUPPORT_ORBIT_TURN_BANK_DEG = 20.0
+SUPPORT_ORBIT_TURN_PAD_M = 3 * 1852.0
+SUPPORT_ORBIT_MIN_HALF_WIDTH_M = 2 * 1852.0
+
+
+def support_half_width(flight: FlightData) -> Optional[float]:
+    """Half-width of the box a support orbit fills, from the flight's orbit
+    speed. None without one."""
+    if flight.patrol_speed is None:
+        return None
+    speed = flight.patrol_speed.meters_per_second
+    turn = speed * speed / (9.81 * math.tan(math.radians(SUPPORT_ORBIT_TURN_BANK_DEG)))
+    return max(SUPPORT_ORBIT_MIN_HALF_WIDTH_M, turn + SUPPORT_ORBIT_TURN_PAD_M)
+
+
 #: Corners plus the repeat that closes the figure. No display auto-closes a
 #: line: the Hornet's FAOR and the Viper's GEO sets both draw segments between
 #: consecutive points and stop.
@@ -358,7 +403,11 @@ def support_boxes(
         else support_tracks(mission_data)
     )
     for track in tracks[:max_boxes]:
-        half_width = SUPPORT_ORBIT_DIAMETER_M / 2
+        half_width = (
+            track.half_width_m
+            if track.half_width_m is not None
+            else SUPPORT_ORBIT_DIAMETER_M / 2
+        )
         half_length = track.length_m / 2 + half_width
         course = math.radians(track.course)
         # DCS x is north, y east, and `bearing_degrees` is a compass bearing.

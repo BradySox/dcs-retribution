@@ -52,6 +52,13 @@ class CombatResolutionMethod(Enum):
 
 
 @unique
+class DtcCartridgeLoading(Enum):
+    OFF = "Off"
+    PILOT = "Pilot loads it"
+    SPAWN = "Load at spawn"
+
+
+@unique
 class DefaultPlayerLaserCode(Enum):
     DEFAULT_1688 = "Default (1688)"
     ALLOCATE_OWN = "Allocate own (unique per flight)"
@@ -1093,18 +1100,20 @@ class Settings:
             'Use this to allow spectators when disabling "Allow external views".'
         ),
     )
-    dtc_data_cartridges: bool = boolean_option(
-        "Pre-load DTC data cartridges (F/A-18C, F-16C)",
+    dtc_cartridge_loading: DtcCartridgeLoading = choices_option(
+        "DTC data cartridges (F/A-18C, F-16C)",
         page=MISSION_GENERATOR_PAGE,
         section=GAMEPLAY_SECTION,
-        default=True,
+        choices={v.value: v for v in DtcCartridgeLoading},
+        default=DtcCartridgeLoading.PILOT,
         detail=(
             "Embed a native DCS Data Transfer Cartridge for every blue client "
-            "flight of a DTC-capable jet and auto-load it at spawn: the steerpoints "
-            "with push times, "
-            "recovery TACAN/ICLS/ACLS, and the SA/HSD picture (front line, the "
-            "flight's own orbit, tanker and AWACS orbits, enemy SAM rings). "
-            "Multiplayer clients receive it with the mission download."
+            "flight of a DTC-capable jet: the steerpoints with push times, "
+            "named radio presets (F/A-18C), recovery TACAN/ICLS/ACLS, and the "
+            "SA/HSD picture (front line, the flight's own orbit, tanker and "
+            "AWACS orbits, enemy SAM rings). Pilot loads it: the cartridge "
+            "waits on the jet's DTC page. Load at spawn: the jet loads it by "
+            "itself. Multiplayer clients receive it with the mission download."
         ),
     )
     ground_start_ai_planes: bool = boolean_option(

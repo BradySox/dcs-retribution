@@ -1,8 +1,8 @@
 """DTC cartridge generation pass.
 
 Builds one cartridge **per blue client flight** of a DTC-capable airframe
-(FA-18C and F-16C) and binds it to the flight's client units with
-``AutoLoad``. Per-flight rather than per-type because each flight flies its own
+(FA-18C and F-16C) and binds it to the flight's client units, loading at
+spawn or waiting on the jet's DTC page for the pilot. Per-flight rather than per-type because each flight flies its own
 route -- a package's four Hornet flights get four cartridges, each loading its
 own steerpoints while sharing the mission comm plan and SA picture.
 
@@ -29,7 +29,7 @@ if TYPE_CHECKING:
 
 #: A builder may return ``None`` when nothing the airframe supports is switched
 #: on; the generator then skips the flight rather than binding an empty
-#: AutoLoading cartridge, which is worse than none.
+#: cartridge, which is worse than none.
 CartridgeBuilder = Callable[..., Optional[DtcCartridge]]
 
 #: DCS unit type id -> cartridge builder. Capability is the unit DB's ``DTC``
@@ -77,7 +77,8 @@ class DtcGenerator:
         # A per-flight choice wins over the campaign setting; an
         # all-sections-off cartridge is pointless.
         options = flight.dtc_options
-        if not options.resolve_enabled(self.game.settings.dtc_data_cartridges):
+        loading = self.game.settings.dtc_cartridge_loading
+        if not options.resolve_enabled(loading):
             return
         if not options.any_content:
             return
@@ -86,8 +87,9 @@ class DtcGenerator:
         if cartridge is None:
             return
         self.mission.add_dtc_cartridge(cartridge.name, cartridge.to_json())
+        auto_load = options.resolve_auto_load(loading)
         for unit in clients:
-            unit.add_dtc_cartridge(cartridge.name)
+            unit.add_dtc_cartridge(cartridge.name, autoload=auto_load)
         self.cartridges.append(cartridge)
         used_names.add(cartridge.name)
 

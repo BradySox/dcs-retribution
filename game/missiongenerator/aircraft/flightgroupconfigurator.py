@@ -40,6 +40,7 @@ from ...ato.flightmember import FlightMember
 from ...ato.flightplans.aewc import AewcFlightPlan
 from ...ato.flightplans.packagerefueling import PackageRefuelingFlightPlan
 from ...ato.flightplans.theaterrefueling import TheaterRefuelingFlightPlan
+from ...ato.flightplans.uizonedisplay import UiZoneDisplay
 from ...radio.datalink import (
     DataLinkRegistry,
     DataLinkKey,
@@ -175,6 +176,11 @@ class FlightGroupConfigurator:
             custom_name=self.flight.custom_name,
             laser_codes=laser_codes,
             patrol_speed=patrol_speed,
+            work_zone=(
+                flight_plan.ui_zone()
+                if isinstance(flight_plan, UiZoneDisplay)
+                else None
+            ),
         )
 
         self.register_escort_leash()

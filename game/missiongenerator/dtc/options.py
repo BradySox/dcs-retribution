@@ -30,11 +30,14 @@ class DtcOptions:
     #: Radio presets with channel names (Hornet only -- the Viper's channel
     #: schema has no name field).
     comms: bool = True
-    #: The flight's steerpoints + route sequence (ETAs, leg speeds).
+    #: The flight's steerpoints + route sequence (ETAs, leg speeds), and the
+    #: Hornet's attack lane (SA corridor).
     route: bool = True
-    #: Recovery aids: TACAN/ICLS/ACLS pre-tune + FPAS home waypoint (Hornet).
+    #: Recovery aids: TACAN/ICLS/ACLS pre-tune, FPAS home waypoint and the
+    #: TACAN station list (Hornet).
     nav_aids: bool = True
-    #: The active front line(s) (SA FLOT lines / HSD GEO lines).
+    #: The active front line(s) (SA FLOT lines / HSD GEO lines), and the
+    #: Viper's box on a CAS or SEAD flight's working area.
     flot_and_zones: bool = True
     #: Friendly CAP stations + tanker/AEW&C orbits (SA racetracks; Viper
     #: anchor steerpoints).

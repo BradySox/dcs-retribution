@@ -468,7 +468,7 @@ def _chain_bars(bars: list[list[tuple[float, float]]]) -> list[tuple[float, floa
     return chain
 
 
-def _decimate_open(
+def decimate_open(
     points: list[tuple[float, float]], max_points: int
 ) -> list[tuple[float, float]]:
     """Thin an open polyline to `max_points`, keeping both ends."""
@@ -495,7 +495,7 @@ def red_land_boundary(
         return []
     # The repeated meeting vertices come out of the budget.
     budget = max_lines * max_points_per_line - (max_lines - 1)
-    chain = _decimate_open(chain, budget)
+    chain = decimate_open(chain, budget)
     runs: list[list[tuple[float, float]]] = []
     index = 0
     while index < len(chain) - 1 and len(runs) < max_lines:

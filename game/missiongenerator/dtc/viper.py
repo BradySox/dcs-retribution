@@ -14,8 +14,9 @@ Sections emitted (schema mined from ``CoreMods/aircraft/F-16C/DTC``):
   only 1-20 and reserves 25 for the bullseye, so the route takes 1-20 and
   anchors 21-24.
 * ``MPD.GEO_LINES`` -- the front lines chained into one continuous boundary on
-  line set L1, and a box around each tanker orbit on L2-L4, nearest to the
-  target first. The four sets share the partition's 25 points.
+  line set L1, a box on a CAS or SEAD flight's working area, and a box around
+  each tanker orbit, nearest to the target first. The four sets share the
+  partition's 25 points.
 * ``MPD.THREAT_PTS`` -- enemy SAM rings ("Custom" type, radius in meters,
   <= 15).
 * ``MPD.DEST`` -- friendly recovery fields as Destination steerpoints 81-99,
@@ -25,8 +26,10 @@ Sections emitted (schema mined from ``CoreMods/aircraft/F-16C/DTC``):
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+import math
+from typing import TYPE_CHECKING, Any, Optional
 
+from game.ato.flighttype import FlightType
 from game.missiongenerator.dtc.cartridge import DtcCartridge
 from game.missiongenerator.dtc.common import (
     SupportTrack,
@@ -70,6 +73,13 @@ MAX_DESTINATIONS = 19
 #: A hostile field within this of the target is the one the flight is working
 #: over, so it goes on the DEST page beside the recovery options.
 TARGET_AIRFIELD_RADIUS_M = 18520.0  # 10 NM
+
+#: The flights that get a box on their working area, and its note.
+WORK_BOX_NOTES = {
+    FlightType.CAS: "CAS",
+    FlightType.SEAD: "SEAD",
+    FlightType.SEAD_SWEEP: "SEAD",
+}
 
 #: The Custom threat type's stock ceiling (meters; 30,000 ft) from
 #: THREAT_PTS_defs.
@@ -291,18 +301,49 @@ def _build_nav_pts(
     return points
 
 
+def _work_box(flight: FlightData) -> Optional[list[tuple[float, float]]]:
+    """A closed box around the zone the map draws for a CAS or SEAD flight: its
+    engagement range either side of the track and past each end."""
+    zone = flight.work_zone
+    if flight.flight_type not in WORK_BOX_NOTES or zone is None or not zone.points:
+        return None
+    radius = zone.radius.meters
+    (ax, ay), (bx, by) = (
+        (zone.points[0].x, zone.points[0].y),
+        (zone.points[-1].x, zone.points[-1].y),
+    )
+    length = math.hypot(bx - ax, by - ay)
+    ux, uy = ((bx - ax) / length, (by - ay) / length) if length else (1.0, 0.0)
+    nx, ny = -uy, ux
+    corners = [
+        (px + along * ux + side * nx, py + along * uy + side * ny)
+        for (px, py), along, side in (
+            ((ax, ay), -radius, -radius),
+            ((bx, by), radius, -radius),
+            ((bx, by), radius, radius),
+            ((ax, ay), -radius, radius),
+        )
+    ]
+    return corners + corners[:1]
+
+
 def _build_geo_lines(
     game: Game, mission_data: MissionData, flight: FlightData
 ) -> list[dict[str, Any]]:
-    """The boundary with red on L1, tanker boxes on L2-L4.
+    """The boundary with red on L1, then the working-area box, then tanker
+    boxes, to L4.
 
     A box keeps all five points and the boundary takes what is left, so three
     boxes thin the boundary to 10 points rather than cost a box a corner.
     """
     options = flight.dtc_options
     line_sets: list[tuple[str, list[tuple[float, float]]]] = []
-    boxes = (
-        support_boxes(mission_data, MAX_GEO_LINE_SETS - 1, flight)
+    work: list[tuple[str, list[tuple[float, float]]]] = []
+    work_corners = _work_box(flight) if options.flot_and_zones else None
+    if work_corners is not None:
+        work.append((WORK_BOX_NOTES[flight.flight_type], work_corners))
+    boxes = work + (
+        support_boxes(mission_data, MAX_GEO_LINE_SETS - 1 - len(work), flight)
         if options.friendly_orbits
         else []
     )

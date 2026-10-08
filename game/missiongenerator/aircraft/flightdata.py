@@ -12,6 +12,7 @@ from game.missiongenerator.dtc.options import DtcOptions
 
 if TYPE_CHECKING:
     from game.ato import FlightType, FlightWaypoint, Package
+    from game.ato.flightplans.uizonedisplay import UiZone
     from game.dcs.aircrafttype import AircraftType
     from game.radio.radios import RadioFrequency
     from game.runways import RunwayData
@@ -84,6 +85,9 @@ class FlightData:
     #: Planned on-station speed when this flight flies a racetrack (BARCAP,
     #: TARCAP, AEW&C, tanker); None for point-to-point plans.
     patrol_speed: Optional[Speed] = None
+
+    #: The working area the map draws for this flight (CAS, SEAD...), if any.
+    work_zone: Optional[UiZone] = None
 
     #: Which sections the flight's DTC cartridge carries. Every section is on
     #: by default; the campaign-wide setting is the switch.

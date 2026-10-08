@@ -168,6 +168,7 @@ def _flight(
         divert=None,
         dtc_options=dtc_options if dtc_options is not None else DtcOptions(),
         patrol_speed=patrol_speed,
+        work_zone=None,
     )
 
 
@@ -217,7 +218,7 @@ def _game(
         settings=SimpleNamespace(dtc_cartridge_loading=loading),
         conditions=SimpleNamespace(start_time=datetime(1988, 7, 15, 7, 0)),
         theater=SimpleNamespace(
-            terrain=SimpleNamespace(name="Caucasus"),
+            terrain=SimpleNamespace(name="Caucasus", airports={}),
             timezone=timezone(timedelta(hours=4)),
             conflicts=lambda: [],
             controlpoints=controlpoints or [],
@@ -328,6 +329,11 @@ def _hornet_fixture() -> tuple[Any, Any, Any]:
         tacan=SimpleNamespace(number=71, band=SimpleNamespace(value="X")),
         icls_channel=11,
         link4_freq=_freq(336.4),
+        blue=SimpleNamespace(is_blue=True),
+        ship_group=SimpleNamespace(
+            units=[SimpleNamespace(name="CVN-71 Theodore Roosevelt", id=17)],
+            points=[SimpleNamespace(position=Pt(-90000, 40000))],
+        ),
     )
     flight = _flight(
         waypoints=[takeoff, target, landing],
@@ -1408,3 +1414,147 @@ def test_tanker_boxes_are_omitted_when_orbits_are_off(
         "data"
     ]
     assert all(point["L1"] for point in data["MPD"]["GEO_LINES"])
+
+
+def _hornet_sa(flight: Any, mission_data: Any, game: Any) -> Any:
+    return json.loads(
+        build_hornet_cartridge(flight, mission_data, game, "H").to_json()
+    )["data"]["SA"]
+
+
+def test_hornet_lane_runs_from_the_ip_over_the_target_to_the_split() -> None:
+    flight, mission_data, game = _hornet_fixture()
+    assert _hornet_sa(flight, mission_data, game)["CORRIDORS"] == []  # no IP
+
+    flight.waypoints = [
+        _waypoint("TAKEOFF", FlightWaypointType.TAKEOFF, 0, 0, 0, None),
+        _waypoint("JOIN", FlightWaypointType.JOIN, 10000, 10000, 7000, None),
+        _waypoint("IP", FlightWaypointType.INGRESS_STRIKE, 40000, 50000, 7000, None),
+        _waypoint("TGT", FlightWaypointType.TARGET_POINT, 60000, 80000, 0, None),
+        _waypoint("SPLIT", FlightWaypointType.SPLIT, 40000, 90000, 7000, None),
+        _waypoint("LANDING", FlightWaypointType.LANDING_POINT, 0, 0, 0, None),
+    ]
+    (lane,) = _hornet_sa(flight, mission_data, game)["CORRIDORS"]
+    assert lane["id"] == "CORR_1"
+    assert [(p["x"], p["y"]) for p in lane["points"]] == [
+        (40000, 50000),
+        (60000, 80000),
+        (40000, 90000),
+    ]
+    assert [p["id"] for p in lane["points"]] == [
+        "CORR_1_PT_1",
+        "CORR_1_PT_2",
+        "CORR_1_PT_3",
+    ]
+
+    flight.dtc_options = DtcOptions(route=False)
+    assert _hornet_sa(flight, mission_data, game)["CORRIDORS"] == []
+
+
+def test_hornet_tacan_list_carries_the_boat_then_the_fields() -> None:
+    """Ships are keyed by unit id and route point, as the editor keys an
+    ActivateBeacon task; fields come from the terrain's beacon data, the
+    flight's own first, then the rest of the map's."""
+    flight, mission_data, game = _hornet_fixture()
+    game.theater.terrain.airports = {
+        25: SimpleNamespace(
+            name="Kutaisi",
+            beacons=[SimpleNamespace(id="airfield25_3")],
+        )
+    }
+    tcn = json.loads(build_hornet_cartridge(flight, mission_data, game, "H").to_json())[
+        "data"
+    ]["TCN"]
+    assert tcn[0] == {
+        "callsign": "Mother",
+        "channel": 71,
+        "modeChannel": "X",
+        "display_name": "CVN-71 Theodore Roosevelt_P1",
+        "elevation": 0,
+        "unitId": 17,
+        "unitPointNum": 1,
+        "x": -90000,
+        "y": 40000,
+    }
+    assert (tcn[1]["display_name"], tcn[1]["callsign"], tcn[1]["channel"]) == (
+        "Kutaisi",
+        "KTS",
+        44,
+    )
+    assert tcn[1]["x"] != 0 and tcn[1]["y"] != 0
+    # Then every other TACAN on the map (Caucasus has six), nearest the route
+    # first, with no repeats.
+    names = [t["display_name"] for t in tcn]
+    assert len(names) == len(set(names)) == 7
+    route = [(w.position.x, w.position.y) for w in flight.waypoints]
+    distances = [
+        min(math.hypot(t["x"] - x, t["y"] - y) for x, y in route) for t in tcn[2:]
+    ]
+    assert distances == sorted(distances)
+
+    flight.dtc_options = DtcOptions(nav_aids=False)
+    data = json.loads(
+        build_hornet_cartridge(flight, mission_data, game, "H").to_json()
+    )["data"]
+    assert data["TCN"] == []
+
+
+def _zone(points: list[tuple[float, float]], radius_nm: float) -> Any:
+    return SimpleNamespace(
+        points=[Pt(x, y) for x, y in points],
+        radius=SimpleNamespace(meters=radius_nm * 1852.0),
+    )
+
+
+def _viper_geo(flight: Any, mission_data: Any, game: Any) -> Any:
+    flight.aircraft_type = SimpleNamespace(dcs_unit_type=SimpleNamespace(id="F-16C_50"))
+    return json.loads(build_viper_cartridge(flight, mission_data, game, "V").to_json())[
+        "data"
+    ]["MPD"]["GEO_LINES"]
+
+
+def test_viper_boxes_a_cas_working_area_after_the_front(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A CAS flight gets a closed box on its working area: the engagement range
+    either side of the track and past each end, on the set after the front."""
+    flight, mission_data, game = _hornet_fixture()
+    flight.flight_type = FlightType.CAS
+    flight.work_zone = _zone([(60000.0, 70000.0), (60000.0, 90000.0)], 10)
+    monkeypatch.setattr(
+        "game.missiongenerator.dtc.common.flot_segments",
+        lambda g: [("Front", [(0.0, 0.0), (10000.0, 0.0)])],
+    )
+    geo = _viper_geo(flight, mission_data, game)
+    assert [p["note"] for p in geo if p["L1"]] == ["FLOT", "FLOT"]
+    box = [p for p in geo if p["L2"]]
+    assert [p["note"] for p in box] == ["CAS"] * SUPPORT_BOX_POINTS
+    r = 10 * 1852.0
+    assert [(p["x"], p["y"]) for p in box] == [
+        (60000.0 + r, 70000.0 - r),
+        (60000.0 + r, 90000.0 + r),
+        (60000.0 - r, 90000.0 + r),
+        (60000.0 - r, 70000.0 - r),
+        (60000.0 + r, 70000.0 - r),
+    ]
+    # The fixture's tanker box moves down a set.
+    assert {p["note"] for p in geo if p["L3"]} == {"ARCO"}
+
+    flight.dtc_options = DtcOptions(flot_and_zones=False)
+    assert not [p for p in _viper_geo(flight, mission_data, game) if p["note"] == "CAS"]
+
+
+def test_viper_boxes_a_sead_point_and_skips_a_strike() -> None:
+    flight, mission_data, game = _hornet_fixture()
+    flight.flight_type = FlightType.SEAD
+    flight.work_zone = _zone([(60000.0, 80000.0)], 20)
+    box = [p for p in _viper_geo(flight, mission_data, game) if p["note"] == "SEAD"]
+    r = 20 * 1852.0
+    xs = sorted({p["x"] for p in box})
+    ys = sorted({p["y"] for p in box})
+    assert len(box) == SUPPORT_BOX_POINTS
+    assert (xs, ys) == ([60000.0 - r, 60000.0 + r], [80000.0 - r, 80000.0 + r])
+
+    flight.flight_type = FlightType.STRIKE
+    notes = {p["note"] for p in _viper_geo(flight, mission_data, game)}
+    assert "SEAD" not in notes and "CAS" not in notes

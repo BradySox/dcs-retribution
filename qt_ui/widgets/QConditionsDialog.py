@@ -61,6 +61,7 @@ class QConditionsDialog(QDialog):
 
         # TODO: create new weather object
 
+        old_weather = self.weather.conditions.weather
         new_weather_type = self.weather_adjuster.type_selector.currentData()
         new_weather = new_weather_type(
             seasonal_conditions=game.theater.seasonal_conditions,
@@ -98,6 +99,13 @@ class QConditionsDialog(QDialog):
                 direction=wa.wind_fl26_dir.value(),
             ),
         )
+
+        # The rebuilt weather object also rolls fresh air and fog. Keep the turn's
+        # own unless the date or the weather type changed.
+        same_day = current_time is not None and current_time.date() == qdt.date()
+        if same_day and type(old_weather) is new_weather_type:
+            new_weather.atmospheric = old_weather.atmospheric
+            new_weather.fog = old_weather.fog
 
         self.weather.conditions.weather = new_weather
 

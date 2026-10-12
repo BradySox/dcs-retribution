@@ -111,8 +111,11 @@ class QConditionsDialog(QDialog):
 
         self.weather.update_forecast()
         self.weather.updateWinds()
-        if game.turn > 0 and current_time != qdt:
-            events = GameUpdateEvents()
-            game.initialize_turn(events, for_blue=True, for_red=True)
-            sim.sim_update.emit(events)
+        if game.turn > 0 and current_time is not None and current_time != qdt:
+            # Re-time the planned packages onto the new mission start. Re-planning
+            # the turn here discarded every hand-built package.
+            delta = qdt - current_time
+            game.blue.ato.shift_time(delta)
+            game.red.ato.shift_time(delta)
+            sim.sim_update.emit(GameUpdateEvents())
         self.accept()

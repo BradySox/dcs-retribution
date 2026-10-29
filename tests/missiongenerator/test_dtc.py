@@ -1451,6 +1451,25 @@ def test_hornet_lane_runs_from_the_ip_over_the_target_to_the_split() -> None:
     assert _hornet_sa(flight, mission_data, game)["CORRIDORS"] == []
 
 
+@pytest.mark.parametrize(
+    "ingress", [FlightWaypointType.INGRESS_CAS, FlightWaypointType.INGRESS_SWEEP]
+)
+def test_hornet_draws_no_lane_when_no_split_follows_the_ip(
+    ingress: FlightWaypointType,
+) -> None:
+    """CAS and Sweep have no split, so the lane ran on to landing and divert."""
+    flight, mission_data, game = _hornet_fixture()
+    flight.waypoints = [
+        _waypoint("TAKEOFF", FlightWaypointType.TAKEOFF, 0, 0, 0, None),
+        _waypoint("IP", ingress, 40000, 50000, 7000, None),
+        _waypoint("TGT", FlightWaypointType.TARGET_POINT, 60000, 80000, 0, None),
+        _waypoint("EGRESS", FlightWaypointType.EGRESS, 40000, 90000, 7000, None),
+        _waypoint("LANDING", FlightWaypointType.LANDING_POINT, 0, 0, 0, None),
+        _waypoint("DIVERT", FlightWaypointType.DIVERT, 5000, 5000, 0, None),
+    ]
+    assert _hornet_sa(flight, mission_data, game)["CORRIDORS"] == []
+
+
 def test_hornet_tacan_list_carries_the_boat_then_the_fields() -> None:
     """Ships are keyed by unit id and route point, as the editor keys an
     ActivateBeacon task; fields come from the terrain's beacon data, the

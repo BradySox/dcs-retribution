@@ -412,7 +412,8 @@ def _build_tcn(
 
 def _attack_lane(flight: FlightData) -> list[tuple[float, float]]:
     """The package's path from the IP over the target to the split. Empty for a
-    flight with no IP."""
+    flight with no IP, or with no split after it (CAS, Sweep): that lane would
+    run on to landing and divert."""
     points: list[tuple[float, float]] = []
     for waypoint in flight.waypoints:
         name = waypoint.waypoint_type.name
@@ -420,8 +421,8 @@ def _attack_lane(flight: FlightData) -> list[tuple[float, float]]:
             continue
         points.append((waypoint.position.x, waypoint.position.y))
         if name == "SPLIT":
-            break
-    return points if len(points) >= 2 else []
+            return points
+    return []
 
 
 def _build_corridors(flight: FlightData) -> list[dict[str, Any]]:

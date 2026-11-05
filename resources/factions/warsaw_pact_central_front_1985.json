@@ -1,0 +1,81 @@
+{
+  "country": "Russia",
+  "name": "Warsaw Pact Central Front 1985",
+  "cargo_ship": "Bulker Yakushev",
+  "authors": "RetLab",
+  "description": "<p>The Group of Soviet Forces in Germany, its 16th Air Army and the East German army and air force in 1985: MiG-21s and MiG-23s, MiG-27, Su-17 and Su-25 strike jets, Hind gunships, T-64 and T-80 tank armies, and SA-2 and SA-3 sites from the border to Leipzig. No tankers or AWACS.</p>",
+  "locales": [
+    "ru_RU"
+  ],
+  "aircrafts": [
+    "An-26B",
+    "Mi-24P Hind-F",
+    "Mi-24V Hind-E",
+    "Mi-8MTV2 Hip",
+    "MiG-21bis Fishbed-N",
+    "MiG-23MLD Flogger-K",
+    "MiG-27K Flogger-J2",
+    "Su-17M4 Fitter-K",
+    "Su-24M Fencer-D",
+    "Su-25 Frogfoot",
+    "Yak-40"
+  ],
+  "awacs": [],
+  "tankers": [],
+  "frontline_units": [
+    "T-64BV",
+    "MBT T-80B",
+    "T-72B with Kontakt-1 ERA",
+    "T-55A",
+    "BMP-1",
+    "BMP-2",
+    "APC BTR-70",
+    "BRDM-2",
+    "MT-LB",
+    "ZSU-23-4 Shilka"
+  ],
+  "artillery_units": [
+    "2S1 Gvozdika",
+    "2S3 Akatsiya",
+    "BM-21 Grad"
+  ],
+  "logistics_units": [
+    "LUV UAZ-469 Jeep",
+    "Truck Ural-375"
+  ],
+  "infantry_units": [
+    "Infantry AK-74 Rus",
+    "Infantry RPG",
+    "Mortar 2B11 120mm",
+    "SAM SA-14 Strela-3 manpad"
+  ],
+  "preset_groups": [
+    "SA-2/S-75",
+    "SA-2/SA-3 Mixed Site",
+    "SA-3/S-125",
+    "SA-6",
+    "KS-19/SON-9"
+  ],
+  "naval_units": [],
+  "air_defense_units": [
+    "EWR 1L13",
+    "EWR P-37 Bar Lock",
+    "SAM P19 \"Flat Face\" SR (SA-2/3)",
+    "SAM SA-8 Osa \"Gecko\" TEL",
+    "SA-9 Strela",
+    "SA-13 Gopher (9K35 Strela-10M3)",
+    "ZSU-57-2 'Sparka'",
+    "S-60 57mm",
+    "AAA ZU-23 Closed Emplacement",
+    "ZU-23 on Ural-375",
+    "ZSU-23-4 Shilka"
+  ],
+  "helicopter_carrier_names": [],
+  "missiles": [
+    "SSM SS-1C Scud-B"
+  ],
+  "requirements": {},
+  "carrier_names": [],
+  "has_jtac": false,
+  "doctrine": "coldwar"
+}

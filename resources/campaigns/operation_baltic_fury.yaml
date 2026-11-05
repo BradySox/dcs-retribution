@@ -1,0 +1,414 @@
+---
+name: Germany - Baltic Fury
+theater: GermanyCW
+authors: RetLab
+recommended_player_faction: NATO Baltic 2027
+recommended_enemy_faction: Redfor (Russia) 2020
+description: >-
+  <p><strong>Note -</strong> Built for the Super Hornet and F-22 mods, CurrentHill's
+  USA, UK, Sweden and Russia Asset Packs and High Digit SAMs; New Game ticks them
+  all.</p>
+  <p>In the summer of 2027, the Russian drive across the North German Plain spent
+  itself. In three weeks the spearhead overran Schleswig-Holstein, seized the Baltic
+  coast, forced the Danish straits and put the red banner over Copenhagen. Then it
+  culminated, outrunning its fuel and ground down by the first NATO air. The line has
+  stalled along the Lübeck neck, and the initiative is about to change hands. It will
+  come from the sea.</p>
+  <p>The Sixth Fleet is in the German Bight. A carrier strike group built around USS
+  Harry S. Truman steams off the Frisian coast, and Raptors and Strike Eagles are
+  surging into Nordholz. Ahead lies the hardest air defense problem in Europe: a coastal
+  wall of Bastion-P and Bal missiles that keeps the fleet at arm's length, S-400
+  regiments over Rostock and Copenhagen, and the Baltic Fleet loose in the
+  approaches.</p>
+  <p>Break the coastal belt, win the air over the Bight, and roll the Red Army back up
+  the coast through Lübeck, Rostock and Peenemünde. Force the Danish straits and
+  liberate Copenhagen. He is reeling and out of position. Do not let him set his
+  feet.</p>
+miz: operation_baltic_fury.miz
+performance: 2
+# Advanced (networked) IADS: red SAM bases carry co-located Command Center + Comms + Generator
+# statics (in the .miz). Skynet range mode wires each base's SAMs to its nearby comms (<15nm) /
+# power (<35nm) / command center -> destroyable per-base C2 cells. The three strategic S-400
+# hubs (Copenhagen / Rostock / Szczecin) are authored as multi-battalion regiments + a shared
+# EWR, per the SAM-belt STANDARD. See the campaign design note.
+advanced_iads: true
+recommended_start_date: 2027-07-17
+# Blue counter-offensive tuning: NATO out-produces and out-buys the culminated salient.
+recommended_player_money: 800
+recommended_enemy_money: 400
+recommended_player_income_multiplier: 1.3
+recommended_enemy_income_multiplier: 0.7
+version: "10.8"
+settings:
+  squadron_start_full: true
+  # --- Required mods: preseed the Mods page so the OOB airframes + the HDS S-400/S-300 hardware
+  #     resolve at New Game. A missing mod REMOVES the unit from the faction, so any squadron
+  #     authored on it is SILENTLY DROPPED -- keep the roster to units these six mods provide.
+  fa_18efg: true                   # F/A-18E/F Super Hornet + EA-18G Growler (the carrier wing)
+  fa18ef_tanker: true              # F/A-18E organic carrier tanker
+  f22_raptor: true                 # F-22A Raptor (Nordholz)
+  usamilitaryassetspack: true      # CurrentHill USA pack (blue ground / air defense)
+  # The two allies the Baltic actually belongs to (NATO Baltic 2027 faction). Sweden
+  # joined NATO in 2024 and fights in its home water; the UK leads the Joint
+  # Expeditionary Force, the Northern-Europe framework. Both packs are REQUIRED --
+  # without them the allied ground/naval/AD units are stripped from the faction.
+  swedishmilitaryassetspack: true  # LvS-103 area SAM, RBS-15KA coastal, Visby/CB90, Strv 122/123, Archer
+  ukmilitaryassetspack: true       # Type 45 / Type 26 for the CSG screen, Sky Sabre, Challenger 3
+  russianmilitaryassetspack: true  # CurrentHill Russia pack ([CH] Ka-52 / Tu-160M2 + red ground)
+  high_digit_sams: true            # HDS Ultimate Compilation (S-400 / S-300 hardware)
+  # 2027 era gate: hide post-era weapons + cockpit properties so the modern jets don't spawn
+  # with beyond-era kit (both toggles; §24 split restrict_props off restrict_weapons).
+  restrict_weapons_by_date: true
+  restrict_props_by_date: true
+  # Human-led counter-offensive: keep the blue auto-planner cautious so RetLab's sorties
+  # (the SEAD/anti-ship push into the coastal belt) are the player's to fly.
+  ownfor_autoplanner_aggressiveness: 10
+  oca_target_autoplanner_min_aircraft_count: 40
+  # §52 command-center decapitation: the advanced-IADS command network feeds red's PLANNING,
+  # not just SAM autonomy -- as the player bombs the HQs, red's offensive targeting gets
+  # sloppier. Reactive defense untouched. This laydown ships a real per-base C2 network to key on.
+  c2_decapitation_effects: true
+  # §61 host red-interceptor scramble: F10 "HOST: Red Scramble" clones a red fighter flight at
+  # any red field and vectors it onto the nearest blue fighters (MP events; gated to the host's
+  # static "Flash" name tag). Free/untracked event content.
+  host_red_scramble: true
+  # §86 GPS jamming: red EW Radio Jammers deny satellite guidance around two of its
+  # early-warning sites (see ground_forces below), so a JDAM/JSOW/JASSM released inside the
+  # bubble lands off the aimpoint. Laser and TV weapons are unaffected -- the counter is to
+  # change delivery, stand off, or kill the jammer, which restores accuracy at once. This is
+  # a 2027 campaign, which is what makes the mechanic legal: the jammers are 2010 kit and the
+  # weapons they deny are 1997+, so a Cold War laydown (Red Tide) can never field this.
+  gps_jamming: true
+  plugins:
+    # advanced_iads (top-level) is this laydown's centerpiece; skynetiads owns its whole runtime.
+    skynetiads: true
+    # §61 host-menu gate: only DCS names containing "Flash" see the HOST: Red Scramble menu.
+    redscramble.hostPlayers: Flash
+# --- §86 GPS jamming: two of red's five early-warning sites also field an EW Radio Jammer.
+#
+#     The jammer is pinned to an EWR marker on purpose. A GPS jammer emits in L-band, which no
+#     RWR covers and no HARM homes on, so a jammer standing alone would be invisible to the
+#     tools a pilot hunts emitters with -- findable only by recon, never prosecutable by SEAD.
+#     Sharing the site with the early-warning radar gives it a real always-on emitter to be
+#     found by (the IADS never holds an EWR dark). Killing the jammer truck stops the jamming;
+#     killing the radar blinds the site without stopping it. Both are worth a bomb.
+#
+#     The jamming sites are their OWN markers (GPSJAM-1/2, added by
+#     `tools/build_baltic_fury_miz.py --gps-jamming`), not a modifier bolted onto the EWR net.
+#     Red's early-warning chain and its GPS-denial belt are separate installations you attack
+#     separately: killing an EWR blinds the radar picture, killing a jamming site gives you
+#     your satellite guidance back, and neither does the other's job.
+#
+#     Placed to cover what blue actually wants to JDAM:
+#       * GPSJAM-1 -- the Copenhagen approach, ~5 km from Kastrup, the victory objective. The
+#         final push is a "kill the jammer before you can JDAM the prize" problem.
+#       * GPSJAM-2 -- Rostock, the central approach blue fights up on the way north.
+#
+#     Each site brings its own layout: the jammer trucks, an ARM-able ST-68U acquisition radar
+#     so the site paints RWRs and takes HARMs (a GPS jammer is L-band and invisible to both on
+#     its own), and point defence.
+#
+#     The preset must list ONLY units the faction can reach: the override gate is
+#     `all(u in faction.accessible_units for u in fg.units)`, so ONE unreachable unit silently
+#     discards the whole pin and the marker falls back to an ordinary site (exactly what
+#     happened on the first cut -- the jammer was in no faction). The preset is registered in
+#     `redfor_russia_2020.json`'s preset_groups, which is what makes its units accessible.
+ground_forces:
+  GPSJAM-1: GPS Jamming Site (Red)
+  GPSJAM-2: GPS Jamming Site (Red)
+# --- §75 custom victory: liberate Copenhagen = win; lose the Nordholz bridgehead = defeat.
+#     (Stock territory endings remain in addition to these.)
+victory:
+  description: "Liberate Copenhagen and break the Russian grip on the Danish straits."
+  win_when:
+    - label: "Copenhagen liberated"
+      min_turn: 6
+      capture_cps: [Kastrup]
+  lose_when:
+    - label: "The bridgehead is lost"
+      lose_cps: [Nordholz]
+squadrons:
+  # ============================ BLUE ============================
+  # ★ CARRIER — offshore at 55.0N 6.8E ([127353, -868754]). Carrier wings are keyed by the
+  #   carrier's NAME (like exercise_bright_star's "Blue CV-1"), not a map airport id. Name the
+  #   CVN group in the .miz EXACTLY this string (it also drives the §65 comms card); if you name
+  #   it differently, change this key to match.
+  CVN-75 Harry S. Truman:
+    - primary: TARCAP
+      secondary: air-to-ground
+      aircraft:
+        - RetLab Rhinos
+      aircraft_type: F/A-18E Super Hornet
+      callsign: Victory
+      size: 12
+    # §82 The Wing Grows — the strike phase. SEAD/DEAD before strike: the deep
+    # strike arm arrives once the S-400/S-300 belt is being rolled back (the
+    # Gripens land turn 5), not while it is still intact.
+    - primary: Strike
+      secondary: air-to-ground
+      aircraft:
+        - RetLab Strike Rhinos
+      aircraft_type: F/A-18F Super Hornet
+      callsign: Hammer
+      size: 10
+    - primary: SEAD Escort
+      secondary: any
+      aircraft:
+        - VAQ-141 Shadowhawks
+      aircraft_type: EA-18G Growler
+      callsign: Cobra
+      size: 6
+    - primary: AEW&C
+      aircraft:
+        - VAW-125 Tigertails
+      aircraft_type: E-2D Advanced Hawkeye
+      callsign: Ranger
+      size: 2
+    - primary: Refueling
+      aircraft:
+        - Carrier Air Wing Tanker
+      aircraft_type: F/A-18E Tanker
+      size: 3
+    - primary: Air Assault
+      secondary: any
+      aircraft:
+        - HSC Plane Guard
+      aircraft_type: SH-60B Seahawk
+      size: 2
+  # ★ Nordholz (47) — RetLab land wing: Raptors + Strike Eagles.
+  47:
+    - primary: TARCAP
+      secondary: air-to-air
+      aircraft:
+        - RetLab Raptor Squadron
+      aircraft_type: F-22A Raptor
+      callsign: Vader
+      size: 12
+    # §82 The Wing Grows — strike phase, paired with the carrier's Strike Rhinos.
+    - primary: Strike
+      secondary: air-to-ground
+      aircraft:
+        - 414th Tactical Fighter Squadron
+      aircraft_type: F-15E Strike Eagle (Suite 4+)
+      callsign: Chaos
+      size: 12
+    # The Swedish detachment. F 17 (Blekinge Wing, Ronneby/Kallinge) is the Baltic-facing
+    # Gripen wing, forward-deployed to Nordholz for the counter-offensive. It is here for a
+    # capability reason as well as a thematic one: blue's ONLY other dedicated SEAD/DEAD unit
+    # is the carrier's Growler squadron, which is thin against an 11-site S-400/S-300 belt --
+    # and the CH Gripen's unit data carries DEAD: 790, the highest task priority in its file.
+    # Its RBS-15 Mk4 (160 NM) also gives blue a second anti-ship shooter against the Baltic
+    # Fleet SAG, and Taurus KEPD-350 (270 NM) reaches the coastal belt from standoff.
+    # `country: Sweden` is load-bearing (§23): it pins the squadron to Swedish comms,
+    # voiceovers and pilot names instead of the shared US voice.
+    # §82 The Wing Grows — the DEAD rollback opens. Sweden acceded to NATO in
+    # March 2024, after Finland, so the accession order and the doctrinal order
+    # (defensive counter-air before offensive DEAD) agree. Turns 1-4 are
+    # deliberately Growler-thin against the 11-site belt: that is the pressure
+    # the arrival relieves, not a gap.
+    - primary: DEAD
+      secondary: air-to-ground
+      aircraft:
+        - F 17 Blekinge Wing
+      aircraft_type: "[CH] JAS 39C Gripen"
+      country: Sweden
+      callsign: Viggen
+      size: 8
+  # Bremen (5) — rear heavies + eyes.
+  5:
+    - primary: AEW&C
+      aircraft:
+        - NATO E-3A Component
+      aircraft_type: E-3A
+      callsign: Magic
+      size: 2
+    - primary: Refueling
+      aircraft:
+        - 100th Air Refueling Wing
+      aircraft_type: KC-135 Stratotanker
+      size: 2
+    - primary: Refueling
+      aircraft:
+        - 351st Air Refueling Squadron
+      aircraft_type: KC-135 Stratotanker MPRS
+      size: 2
+    # §82 The Wing Grows — deep strike last. The most survivability-dependent
+    # asset in the wing arrives when it can actually survive over the target.
+    - primary: Strike
+      secondary: any
+      aircraft:
+        - 34th Bomb Squadron
+      aircraft_type: B-1B Lancer
+      callsign: Bone
+      size: 4
+  # Hamburg (17) — forward CAS / rotary hub, holding the Lübeck neck.
+  17:
+    # The Finnish detachment. Finland joined NATO in April 2023 -- before Sweden -- and its
+    # F/A-18C Hornets were bought as interceptors, so BARCAP is the historically honest role.
+    # HavLLv 31 (Fighter Squadron 31, Karjalan Lennosto at Rissala) is the Russia-facing
+    # Finnish fighter squadron. Placed at Hamburg deliberately: at 53 km from the nearest red
+    # field it is blue's most exposed base and had NO fast air at all -- only A-10s, Apaches
+    # and lift. It also closes a real hole in the order of battle: blue flew ZERO BARCAP
+    # squadrons against red's SIX, so nothing stood a barrier patrol over blue's own fields.
+    # Unlike the CH Gripen (an AI-only mod airframe), the F/A-18C is a full-fidelity module,
+    # so this is a flyable seat. `country: Finland` pins Finnish comms/voices/pilot names (§23).
+    # §82 The Wing Grows — defensive counter-air. Finland acceded April 2023,
+    # first of the two, and this closes blue's real hole (blue otherwise flies
+    # ZERO BARCAP squadrons against red's six). A full-fidelity module, so the
+    # arrival is a flyable seat and not just an AI reinforcement.
+    - primary: BARCAP
+      secondary: air-to-air
+      aircraft:
+        - HavLLv 31
+      aircraft_type: F/A-18C Hornet (Lot 20)
+      country: Finland
+      callsign: Sisu
+      size: 8
+    - primary: CAS
+      secondary: air-to-ground
+      aircraft:
+        - 81st Fighter Squadron
+      aircraft_type: A-10C Thunderbolt II (Suite 7)
+      callsign: Bulldog
+      size: 8
+    - primary: CAS
+      secondary: air-to-ground
+      aircraft:
+        - 12th Combat Aviation Brigade
+      aircraft_type: AH-64D Apache Longbow
+      callsign: Honco
+      size: 4
+    - primary: Air Assault
+      secondary: any
+      aircraft:
+        - 5th Battalion 159th Aviation
+      aircraft_type: CH-47F Block I
+      size: 2
+    - primary: Transport
+      secondary: any
+      aircraft:
+        - 910th Airlift Wing
+      aircraft_type: C-130J-30
+      callsign: Toxic
+      size: 2
+  # ============================ RED ============================
+  # Copenhagen — Kastrup (41): the seized prize + the anti-ship archer.
+  41:
+    - primary: Anti-ship
+      # No `secondary: any` (Red Tide lesson): confine the Backfires to Anti-ship so the planner
+      # doesn't fly them as STRIKE/BARCAP filler. Anti-ship is target-gated, so they rarely fly.
+      aircraft:
+        - 924th Guards Naval Missile-Carrier Aviation Regiment
+      aircraft_type: Tu-22M3 Backfire-C
+      size: 8
+    - primary: BARCAP
+      secondary: air-to-air
+      aircraft:
+        - 98th Guards Fighter Aviation Regiment
+      aircraft_type: Su-30 Flanker-C
+      size: 8
+    - primary: Transport
+      secondary: any
+      aircraft:
+        - 339th Military Transport Aviation Regiment
+      aircraft_type: IL-76MD
+      size: 4
+  # Rostock — Laage (20): coastal PVO, the Baltic approaches barrier.
+  20:
+    - primary: BARCAP
+      secondary: any
+      aircraft:
+        - 790th Fighter Aviation Regiment
+      aircraft_type: MiG-31 Foxhound
+      size: 8
+    - primary: BARCAP
+      secondary: air-to-air
+      aircraft:
+        - 689th Guards Fighter Aviation Regiment
+      aircraft_type: Su-27 Flanker-B
+      size: 8
+  # Peenemünde (25): eastern-shoulder Flankers + naval strike / SEAD.
+  25:
+    - primary: TARCAP
+      secondary: air-to-air
+      aircraft:
+        - 159th Guards Fighter Aviation Regiment
+      aircraft_type: Su-30 Flanker-C
+      size: 8
+    - primary: SEAD
+      secondary: any
+      aircraft:
+        - 4th Guards Naval Assault Aviation Regiment
+      aircraft_type: Su-24M Fencer-D
+      size: 8
+  # Parchim (84): forward regiment closest to the front (defensive-roled).
+  84:
+    - primary: BARCAP
+      secondary: air-to-air
+      aircraft:
+        - 33rd Fighter Aviation Regiment
+      aircraft_type: MiG-29S Fulcrum-C
+      size: 12
+    - primary: Armed Recon
+      secondary: air-to-ground
+      aircraft:
+        - 368th Assault Aviation Regiment
+      aircraft_type: Su-25 Frogfoot
+      size: 8
+  # Wismar (108): forward red rotary FOB behind the front.
+  108:
+    - primary: CAS
+      secondary: air-to-ground
+      aircraft:
+        - 15th Independent Combat Helicopter Regiment
+      aircraft_type: "[CH] Ka-52"
+      size: 4
+    - primary: Escort
+      secondary: any
+      aircraft:
+        - 337th Independent Combat Helicopter Regiment
+      aircraft_type: Mi-24P Hind-F
+      size: 4
+    - primary: Air Assault
+      secondary: any
+      aircraft:
+        - 239th Independent Helicopter Regiment
+      aircraft_type: Mi-8MTV2 Hip
+      size: 4
+  # Szczecin-Goleniów (50): deep SE rear -- heavy iron, eyes, gas, barrier CAP.
+  50:
+    - primary: Strike
+      aircraft:
+        - 1023rd Heavy Bomber Aviation Regiment
+      aircraft_type: Tu-95MS Bear-H
+      size: 4
+    - primary: OCA/Runway
+      secondary: any
+      aircraft:
+        - 121st Guards Heavy Bomber Aviation Regiment
+      aircraft_type: "[CH] Tu-160M2"
+      size: 4
+    - primary: AEW&C
+      aircraft:
+        - 144th Independent Air Reconnaissance Regiment
+      aircraft_type: A-50
+      size: 1
+    - primary: Refueling
+      aircraft:
+        - 203rd Guards Air Refuelling Regiment
+      aircraft_type: IL-78M
+      size: 2
+    - primary: BARCAP
+      secondary: air-to-air
+      aircraft:
+        - 831st Guards Fighter Aviation Regiment
+      aircraft_type: Su-30 Flanker-C
+      size: 8
+  # Bornholm (33): forward Baltic island bastion -- the strait-forcing objective.
+  33:
+    - primary: BARCAP
+      secondary: air-to-air
+      aircraft:
+        - 1st Guards Air Defence Fighter Regiment
+      aircraft_type: MiG-29S Fulcrum-C
+      size: 8

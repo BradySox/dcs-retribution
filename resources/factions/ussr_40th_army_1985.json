@@ -1,0 +1,80 @@
+{
+  "country": "Russia",
+  "name": "USSR 40th Army 1985",
+  "cargo_ship": "Bulker Yakushev",
+  "authors": "RetLab",
+  "description": "<p>The Soviet 40th Army and its air force in 1985: MiG-21s and MiG-23s, MiG-27, Su-17, Su-24 and Su-25 strike jets, Hind gunships, SA-2, SA-3 and SA-6 belts around the big bases, and one SA-5. No MiG-29s, Su-27s or tankers.</p>",
+  "locales": [
+    "ru_RU"
+  ],
+  "aircrafts": [
+    "An-26B",
+    "IL-76MD",
+    "Mi-24V Hind-E",
+    "Mi-24P Hind-F",
+    "Mi-8MTV2 Hip",
+    "MiG-21bis Fishbed-N",
+    "MiG-23MLD Flogger-K",
+    "MiG-27K Flogger-J2",
+    "Su-17M4 Fitter-K",
+    "Su-24M Fencer-D",
+    "Su-25 Frogfoot",
+    "Yak-40"
+  ],
+  "awacs": [
+    "A-50"
+  ],
+  "tankers": [],
+  "frontline_units": [
+    "BMP-1",
+    "BMP-2",
+    "BRDM-2",
+    "APC BTR-70",
+    "BTR-80",
+    "T-55A",
+    "T-62"
+  ],
+  "artillery_units": [
+    "2S1 Gvozdika",
+    "2S9 Nona-S",
+    "BM-21 Grad"
+  ],
+  "logistics_units": [
+    "LUV UAZ-469 Jeep",
+    "Truck Ural-375"
+  ],
+  "infantry_units": [
+    "Infantry AK-74 Rus",
+    "Infantry RPG",
+    "Mortar 2B11 120mm",
+    "SAM SA-14 Strela-3 manpad"
+  ],
+  "preset_groups": [
+    "SA-2/S-75",
+    "SA-2/SA-3 Mixed Site",
+    "SA-3/S-125",
+    "SA-5/S-200",
+    "SA-6",
+    "KS-19/SON-9"
+  ],
+  "naval_units": [],
+  "air_defense_units": [
+    "EWR 1L13",
+    "EWR P-14 Tall King",
+    "SAM SA-8 Osa \"Gecko\" TEL",
+    "SA-9 Strela",
+    "SA-13 Gopher (9K35 Strela-10M3)",
+    "ZSU-57-2 'Sparka'",
+    "AAA ZU-23 Closed Emplacement",
+    "ZU-23 on Ural-375",
+    "ZSU-23-4 Shilka"
+  ],
+  "helicopter_carrier_names": [],
+  "missiles": [
+    "SSM SS-1C Scud-B"
+  ],
+  "requirements": {},
+  "carrier_names": [],
+  "has_jtac": false,
+  "doctrine": "coldwar"
+}

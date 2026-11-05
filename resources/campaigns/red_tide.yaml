@@ -1,0 +1,487 @@
+---
+name: Germany - Red Tide
+theater: GermanyCW
+authors: Starfire, RetLab
+recommended_player_faction: Blufor Late Cold War (80s)
+recommended_enemy_faction: Russia 1980 (Red Tide)
+description: >-
+  <p><strong>Note -</strong> Built by RetLab from Starfire's Crossing the Rubicon, which
+  still ships. Every squadron is a named historical unit in its own livery. Every unit
+  is stock DCS. Inspired by Tom Clancy's Red Storm Rising.</p>
+  <p>The storm broke before dawn on 13 July 1988. Soviet and Warsaw Pact armies tore
+  across the inner German border and drove for the Rhine, and in the first shock Hamburg
+  fell and the red banner went up over Copenhagen. For a few desperate days it looked as
+  though nothing could stop them.</p>
+  <p>Then the offensive ran dry. Outrunning its own fuel and ground down by NATO
+  airpower, the Soviet spearhead has culminated, overextended, exposed and not yet dug
+  in. The line has held, and NATO is going over to the attack, with American Eagles and
+  Tomcats alongside the Luftwaffe's own JG 74 Phantoms, to take back the skies over
+  Central Europe, retake Hamburg and liberate Copenhagen.</p>
+  <p>It will not be easy. The enemy is still many, his S-300 and SA-11 belts still reach
+  deep, and every kilometer east is paid for. But he is reeling and out of position.
+  Break him before he can consolidate.</p>
+miz: red_tide.miz
+performance: 2
+# Advanced (networked) IADS: red SAM bases carry co-located Command Center + Comms tower M
+# + GeneratorF statics (in the .miz). With no iads_config, Skynet wires each base's SAMs to
+# its nearby comms (<15nm) / power (<35nm) / command center by range -> destroyable per-base
+# C2 cells. Range mode is the deliberate fit here (per-base auto-wiring scales with the
+# laydown). By-name iads_config IS possible in principle -- a marker-spawned site's
+# original_name is its marker group name, which iads_config keys on -- but range mode needs
+# no per-site bookkeeping, so it stays. The three rear S-300 hubs (Sperenberg/Kastrup/
+# Schoenefeld) are clustered into 3-battalion regiments + a shared EWR (2026-07-12), netted
+# by this range mode; see the campaign design note.
+advanced_iads: true
+recommended_start_date: 1988-07-13
+# Blue-offensive tuning: NATO out-produces and out-buys the culminated Soviet salient.
+recommended_player_money: 800
+recommended_enemy_money: 400
+recommended_player_income_multiplier: 1.3
+recommended_enemy_income_multiplier: 0.7
+version: "10.8"
+settings:
+  squadron_start_full: true
+  # §1 QRA reserve: hold this many hot-alert interceptors per BARCAP-capable red
+  # squadron. Preseeded here (not left to saved defaults) so Red Tide always plays its
+  # Cold-War Soviet posture -- ~24 of red's 40 fighters stand alert, which is what makes
+  # red fly a dense DEFENSIVE screen and (deliberately) no offensive packages. It also
+  # feeds the QRA forward-defense layer so rear fields scramble to the Fulda/Haina front.
+  # Standard default is 0; without this preseed a reset to standard would leave red both
+  # quiet and passive.
+  opfor_default_qra_reserve: 4
+  # 1988 era gate: hide post-era weapons from the payload editor / generator so the
+  # period jets don't spawn with modern kit. Preseeded because Red Tide is date-specific
+  # and no other campaign setting covers it (standard default is off).
+  restrict_weapons_by_date: true
+  # ... and the same gate for era-defining cockpit *properties* (§24). Until #598 this
+  # rode on restrict_weapons_by_date above -- which is what clamped the M1-flown Vipers
+  # and Hornets -- but that PR split it onto its own toggle that defaults OFF, so without
+  # this line the 1988 gate silently stops clamping. It bites the DEFAULTED case, not just
+  # a deliberate pick: an unset helmet device still writes JHMCS into the .miz, so the
+  # Block 50s and Lot 20s would spawn with a 2003 helmet in a July 1988 campaign.
+  restrict_props_by_date: true
+  # Human-led offensive: keep the blue auto-planner cautious so the AI fills fewer of
+  # the ATO's offensive slots and the human's player sorties (F-16CM/F-A-18C/F-15E/
+  # F-14B/A-10C) carry the push. Recommended NEW-GAME defaults; the player can
+  # still change them in the wizard.
+  #
+  # Fraction of OPFOR threat-radius the blue auto-planner ignores. Default 20; lowered
+  # so blue AI won't auto-throw strike/SEAD packages deep into red's IADS belt -- the
+  # human flies those dangerous sorties instead. (Red/OPFOR aggressiveness untouched.)
+  ownfor_autoplanner_aggressiveness: 10
+  # Aircraft an airfield must hold before blue auto-plans an OCA strike on it. Default
+  # 20; raised so airfield attack becomes a human-chosen objective, not AI busywork
+  # (red squadrons are 4-8 jets, so most fields now fall below this threshold).
+  oca_target_autoplanner_min_aircraft_count: 40
+  # Front-line ground density (diagnosed 2026-08-02 from the flown M2 Tacview): red's Haina
+  # maneuver force generated near-empty. Two compounding causes -- (1) Haina's deployable-unit
+  # CAP is only the 15-unit floor because NO ammo depot is bound to the front CPs (Red Tide's
+  # depots -- DINGO/WOODPECKER/PIKE -- all sit at REAR bases; the cap is 15 + 12*ammo_depot_units
+  # AT that CP), and (2) this factor -- how much of the cap OPFOR procurement fills -- rode the
+  # DM's saved default of 70(%), not preseeded, so red targeted only 15*0.70 ~= 10 front units.
+  # Fix has TWO knobs: this preseed + one or more `_Ammunition_depot` statics placed near Haina
+  # in red_tide.miz (each depot unit = +12 cap). Front target = (15 + 12*depot_units) * this/100.
+  # With 1 Haina depot (cap 27) and 85% this targets ~23 maneuver units -- the felt-good
+  # WP-echelon density the M2 host reached by hand-adding armor. Red-only (blue keeps its own
+  # frontline_reserves_factor); the code default is 130 but that never applied under the saved 70.
+  # NEEDS the Haina depot in the miz to exceed 15, and a NEW game to take effect.
+  frontline_reserves_factor_red: 85
+  # Civilian air traffic stays ON (squadron call 2026-07-12, reversing the first M1
+  # tuning cut): a neutral IL-76 at FL230 DID die to a deep player Phoenix shot in M1
+  # (an airliner profile is indistinguishable from a Soviet transport on an AWG-9),
+  # but the squadron keeps the civilians -- the ambient life is worth the occasional
+  # Aeroflot incident, and BVR target discrimination past the FLOT is on the shooter.
+  # Deliberately NOT preseeded (the generic default is ON); do not re-add
+  # `civilian_air_traffic: false` here without a new squadron call.
+  # Support-orbit standoff: the `aewc_threat_buffer_min_distance: 30` /
+  # `tanker_threat_buffer_min_distance: 25` preseeds (the M1 tuning batch, 2026-07-11)
+  # were STRIPPED 2026-08-02 -- the campaign no longer preseeds either, so the generic
+  # defaults (80/70 NM) apply. The front-anchored orbit placement those preseeds were
+  # tuned against was reverted to upstream 2026-08-09 (§6 revert): orbits now anchor on
+  # the package target and step off the nearest threat boundary, with no AI depth
+  # asymmetry, so red support no longer holds a fixed ~200/175 NM behind the FLOT.
+  # Deliberately NOT preseeded; do not re-add without a new squadron call. The
+  # BARCAP-duration preseed below is unaffected and stays.
+  # BARCAP endurance (M1 finding): a Schonefeld MiG-29 flew the default 60-min
+  # on-station racetrack -- the one real-fuel-burn window under AI unlimited fuel --
+  # and flamed out dry at ~75 min airborne with no combat: 60 min at the AI's patrol
+  # speed is right at a Fulcrum+centerline-tank's whole load, and the racetrack-end
+  # waypoint that restores unlimited fuel for RTB never fires on a dead jet. 45 min
+  # leaves the short-legged Soviet fighters a real reserve; at the default 60-min
+  # mission the wave count is unchanged (ceil(60/30) == ceil(60/45) == 2).
+  desired_barcap_mission_duration: 45
+  # §52 command-center decapitation -- red's advanced-IADS command network (the 9 co-located
+  # Command Center cells wired here by advanced_iads range mode) now feeds red's *planning*,
+  # not just its SAM autonomy: as the player bombs those HQs, red's offensive target selection
+  # gets sloppier (the §17 planner unpredictability is scaled up in proportion to the dead
+  # fraction). "Break him before he can consolidate" made mechanical. Reactive defense is
+  # untouched -- a decapitated red still defends. Default OFF; preseeded ON here because this
+  # laydown is one of the very few with a real, per-base, destroyable command network to key on.
+  c2_decapitation_effects: true
+  # §61 host red-interceptor scramble -- the game master's "give the boys something to
+  # shoot" button, built off the M1 debrief ("once the first wave was over it felt
+  # quiet"). An F10 "HOST: Red Scramble" menu clones a 2/4-ship red fighter flight at
+  # any red airfield and vectors it onto the nearest blue fighters. Default OFF
+  # globally; preseeded here for the squadron's MP events, with the menu gated to the
+  # host's static "Flash" name tag via the plugin option below. Spawns are
+  # free/untracked event content.
+  host_red_scramble: true
+  plugins:
+    # advanced_iads (line 33) is this laydown's centerpiece, and skynetiads owns its entire
+    # runtime: the plugin is the only consumer of the emitted IADS table. Off, the IADS
+    # command unit is skipped at generation AND the auto-planner drops IADS buildings as
+    # strike targets outright.
+    skynetiads: true
+    # §61 host-menu gate: the host's DCS name runs "<flight> 1-x | Flash" with a
+    # changing prefix, so gate on the static tag -- hostPlayers is a substring
+    # match, and "Flash" covers every event's prefix. Only names containing it
+    # see the HOST: Red Scramble menu.
+    redscramble.hostPlayers: Flash
+squadrons:
+  #Ramstein — rear heavy-iron + the eyes: the B-52s, the Strike Eagles, and the E-3A.
+  165:
+    # §82 The Wing Grows — the heavy stick, once blue owns enough of the sky to
+    # fly it. Red Tide opens DEFENSIVELY (holding the Gap), so its arc is
+    # hold -> stabilise -> counter-attack: what arrives later is the
+    # counter-offensive capability, never the CAS the defensive battle needs
+    # from turn 1.
+    - primary: Strike
+      secondary: any
+      aircraft:
+        - 20th Bomb Squadron
+      aircraft_type: B-52H Stratofortress
+      size: 4
+    - primary: AEW&C
+      aircraft:
+        - NATO E-3A Component
+      aircraft_type: E-3A
+      callsign: Magic
+      size: 2
+    - primary: Refueling
+      aircraft:
+        - 126th Air Refueling Squadron
+      aircraft_type: KC-135 Stratotanker
+      size: 2
+    - primary: Refueling
+      aircraft:
+        - 340th Expeditionary Air Refueling Squadron
+      aircraft_type: KC-135 Stratotanker MPRS
+      size: 2
+  #Frankfurt — the wing: ALL player fixed-wing operate from here (Vipers/Hornets/Eagles/Tomcats/
+  #  Phantoms + the A-10 Hogs + the Strike Eagles + the Mirage + the C-130). Heavies (B-52 / KC-135
+  #  tankers / E-3A) sit back at Ramstein; the helos are forward at Fulda. Spangdahlem + Hahn are
+  #  now quiet rear fields (no home squadron).
+  163:
+    - primary: DEAD
+      secondary: any
+      aircraft:
+        - 23rd FS
+      aircraft_type: F-16CM Fighting Falcon (Block 50)
+      callsign: Voodoo
+      size: 12
+    - primary: SEAD
+      secondary: any
+      aircraft:
+        - VMFA-251
+      aircraft_type: F/A-18C Hornet (Lot 20)
+      callsign: Wizards
+      size: 12
+    - primary: TARCAP
+      secondary: air-to-air
+      aircraft:
+        - 493rd Fighter Squadron
+      aircraft_type: F-15C Eagle
+      callsign: Phantom
+      size: 6
+    - primary: Escort
+      secondary: air-to-air
+      aircraft:
+        - VMF-29
+      aircraft_type: F-14B Tomcat
+      callsign: Demon Dogs
+      size: 8
+    - primary: TARCAP
+      secondary: any
+      aircraft:
+        - GAF JG 74
+      size: 8
+    - primary: CAS
+      secondary: any
+      aircraft:
+        - 81st Tactical Fighter Squadron
+      aircraft_type: A-10C Thunderbolt II (Suite 3)
+      callsign: Bulldog
+      size: 8
+    # §82 The Wing Grows — the counter-attack opens. Deep interdiction of the
+    # Soviet second echelon is exactly the capability a stabilised front unlocks.
+    - primary: BAI
+      secondary: air-to-ground
+      aircraft:
+        - 414th Tactical Fighter Squadron
+      aircraft_type: F-15E Strike Eagle (Suite 4+)
+      callsign: Phantom
+      size: 12
+    # §82 The Wing Grows — stabilise. A coalition reinforcement beat that adds
+    # escort depth as the counter-air fight over the Gap grinds on.
+    - primary: Escort
+      secondary: air-to-air
+      aircraft:
+        - Ala 14
+      aircraft_type: Mirage-F1EE
+      callsign: Dagger
+      size: 6
+    - primary: Transport
+      secondary: any
+      aircraft:
+        - 910th Airlift Wing
+      aircraft_type: C-130J-30
+      callsign: Toxic
+      size: 2
+  #Fulda — neutral Gap airfield flipped BLUE; the forward rotary hub holding the Fulda Gap,
+  #  facing Haina. Now bases ALL of NATO's helicopters (Apache/Kiowa/Huey/Cobra/Chinook) —
+  #  the rear-field rotary detachments (Spangdahlem, Frankfurt) were pushed forward here.
+  166:
+    - primary: CAS
+      secondary: air-to-ground
+      aircraft:
+        - 1-1 Attack Reconnaissance Battalion
+      aircraft_type: AH-64D Apache Longbow
+      callsign: HONCO
+      size: 4
+    - primary: Armed Recon
+      secondary: air-to-ground
+      aircraft:
+        - 1-6 Cavalry
+      aircraft_type: OH-58D(R) Kiowa Warrior
+      callsign: HONCO
+      size: 4
+    - primary: Air Assault
+      secondary: any
+      aircraft:
+        - 159th Aviation Detachment (Forward)
+      aircraft_type: UH-1H Iroquois
+      size: 4
+    # Rotary detachments pushed forward from Frankfurt (163):
+    - primary: Air Assault
+      secondary: any
+      aircraft:
+        - 5th Battalion 159th Aviation
+      aircraft_type: CH-47F Block I
+      size: 4
+    - primary: Escort
+      secondary: any
+      aircraft:
+        - 12th Combat Aviation Brigade
+      aircraft_type: AH-64D Apache Longbow
+      callsign: HONCO
+      size: 4
+    - primary: Escort
+      secondary: any
+      aircraft:
+        - 1-17 Cavalry
+      aircraft_type: OH-58D(R) Kiowa Warrior
+      callsign: HONCO
+      size: 4
+    # Rotary detachment pushed forward from Spangdahlem (162):
+    - primary: Air Assault
+      secondary: any
+      aircraft:
+        - HMLA-269 (UH-1H)
+      aircraft_type: UH-1H Iroquois
+      size: 4
+    - primary: Escort
+      secondary: any
+      aircraft:
+        - HMLA-167
+      aircraft_type: AH-1W SuperCobra
+      size: 4
+  #Hamburg — captured NATO field, now a GSFG forward airhead flown in to hold the northern shoulder.
+  17:
+    - primary: BARCAP
+      secondary: any
+      aircraft:
+        - 85th Guards Fighter Aviation Regiment
+      aircraft_type: MiG-29A Fulcrum-A
+      size: 12
+    - primary: Armed Recon
+      secondary: air-to-ground
+      aircraft:
+        - 357th Assault Aviation Regiment
+      aircraft_type: Su-25 Frogfoot
+      size: 8
+    - primary: SEAD
+      secondary: any
+      aircraft:
+        - 11th Guards Bomber Aviation Regiment
+      aircraft_type: Su-24M Fencer-D
+      size: 8
+    - primary: Escort
+      secondary: any
+      aircraft:
+        - 336th Independent Combat Helicopter Regiment
+      aircraft_type: Mi-24P Hind-F
+      size: 4
+    - primary: Air Assault
+      secondary: any
+      aircraft:
+        - 486th Independent Helicopter Regiment
+      aircraft_type: Mi-8MTV2 Hip
+      size: 4
+  #Kastrup / Copenhagen — Soviet airborne + naval seizure; a Backfire base parked across the Straits.
+  #  (Its MiG-29 regiment moved up to Haina on the Fulda front -- see 161 below.)
+  41:
+    - primary: Anti-ship
+      # No `secondary: any` (2026-07-10): confine the Backfires to their own primary so
+      # the auto-planner stops fragging them for STRIKE-as-secondary + BARCAP filler --
+      # fewer bomber MISSIONS, every airframe still parked on the ramp. Anti-ship is
+      # target-gated (few reachable blue ships), so this squadron rarely auto-flies.
+      aircraft:
+        - 924th Guards Naval Missile-Carrier Aviation Regiment
+      aircraft_type: Tu-22M3 Backfire-C
+      size: 8
+    - primary: SEAD
+      secondary: any
+      aircraft:
+        - 4th Guards Naval Assault Aviation Regiment
+      aircraft_type: Su-24M Fencer-D
+      size: 8
+    - primary: Transport
+      secondary: any
+      aircraft:
+        - 339th Military Transport Aviation Regiment
+      aircraft_type: An-26B
+      size: 4
+  #H FRG 20 — forward red rotary FOB behind the Haina spearhead. Flipped RED in the .miz
+  #  (airport dynamicSpawn off, coalition RED) so it can base the Mi-24/Mi-8 detachments pushed
+  #  off Haina -- which frees Haina's ramp for a modern MiG-29 regiment right on the Fulda front.
+  143:
+    - primary: Escort
+      secondary: any
+      aircraft:
+        - 337th Independent Combat Helicopter Regiment
+      aircraft_type: Mi-24P Hind-F
+      size: 4
+    - primary: Air Assault
+      secondary: any
+      aircraft:
+        - 239th Independent Helicopter Regiment
+      aircraft_type: Mi-8MTV2 Hip
+      size: 4
+  #H FRG 09
+  #61:
+  #H FRG 12
+  #64:
+  #Haina — the western spearhead, the closest red field to the Fulda front. A modern MiG-29
+  #  regiment (moved up from Kastrup) now sits on the front alongside the MiG-23/MiG-27 -- flown
+  #  BARCAP/air-to-air (defensive) so it contests the Fulda/Haina front instead of dying on an
+  #  offensive escort. The Mi-24/Mi-8 helo detachments moved back to H FRG 20 for ramp room.
+  161:
+    - primary: BARCAP
+      secondary: air-to-air
+      aircraft:
+        - Baltic Fleet Fighter Aviation
+      aircraft_type: MiG-29A Fulcrum-A
+      size: 12
+    - primary: Armed Recon
+      secondary: air-to-ground
+      aircraft:
+        - 368th Assault Aviation Regiment
+      aircraft_type: Su-25 Frogfoot
+      size: 8
+    - primary: TARCAP
+      # Was `primary: Escort` / `secondary: any` (2026-07-11): the forward fighter
+      # regiment flew offensive escort deep into blue airspace and was slaughtered by
+      # the NATO F-15/F-14/AWACS wall (the WOODPECKER/BULLSHARK Escort losses in the
+      # 07-11 Tacview). As TARCAP + air-to-air it contests the Fulda/Haina front
+      # reactively (Haina is the spearhead field) instead of being glued to a doomed
+      # strike package -- a lasting air threat that survives to fight again.
+      secondary: air-to-air
+      aircraft:
+        - 33rd Fighter Aviation Regiment
+      aircraft_type: MiG-23MLD Flogger-K
+      size: 12
+    - primary: SEAD Escort
+      secondary: any
+      aircraft:
+        - 19th Guards Fighter-Bomber Aviation Regiment
+      aircraft_type: MiG-27K Flogger-J2
+      size: 8
+  #Sperenberg — deep-rear heavy iron: Bears, Backfires, and the Flanker barrier CAP.
+  101:
+    - primary: Strike
+      # No `secondary: any` (2026-07-10): the marquee Bear stays on STRIKE (so red still
+      # flies the occasional prestige bomber raid the player was fine with), but dropping
+      # the "any" secondary stops the auto-planner also using it as BARCAP/escort filler.
+      # Fewer bomber MISSIONS; the full squadron stays parked on the ramp.
+      aircraft:
+        - 1023rd Heavy Bomber Aviation Regiment
+      aircraft_type: Tu-95MS Bear-H
+      size: 8
+    - primary: OCA/Runway
+      # No `secondary: any` (2026-07-10): confine the Backfires to OCA (which is itself
+      # gated by oca_target_autoplanner_min_aircraft_count: 40, so it rarely auto-frags)
+      # instead of letting them fly STRIKE-as-secondary + BARCAP filler. Airframes stay.
+      aircraft:
+        - 326th Heavy Bomber Aviation Regiment
+      aircraft_type: Tu-22M3 Backfire-C
+      size: 8
+    - primary: BARCAP
+      # Was `primary: Escort` (2026-07-11): red's best fighter was being fragged
+      # forward to escort strikes into the NATO air-superiority wall and dying instead
+      # of defending. As BARCAP it stands as red's premier reactive barrier interceptor
+      # -- survives, scrambles on the player (§1 QRA forward-defense pushes it to the
+      # Fulda/Haina front), and stays a lasting air threat across the campaign rather
+      # than self-destructing on offense turn after turn.
+      secondary: air-to-air
+      aircraft:
+        - 831st Guards Fighter Aviation Regiment
+      aircraft_type: Su-27 Flanker-B
+      size: 12
+  #Schonefeld — the eyes and the gas: Mainstay AWACS, Midas tankers, and a courier flight.
+  26:
+    - primary: AEW&C
+      aircraft:
+        - 144th Independent Air Reconnaissance Regiment
+      aircraft_type: A-50
+      size: 1
+    - primary: Refueling
+      aircraft:
+        - 203rd Guards Air Refuelling Regiment
+      aircraft_type: IL-78M
+      size: 2
+    - primary: Transport
+      secondary: any
+      aircraft:
+        - 226th Composite Aviation Regiment
+      aircraft_type: An-26B
+      size: 4
+  #Templin (Gross Dolln) — Fencers and a Fishbed regiment that still wears its real VVS colours.
+  15:
+    - primary: SEAD
+      secondary: any
+      aircraft:
+        - 31st Bomber Aviation Regiment
+      aircraft_type: Su-24M Fencer-D
+      size: 8
+    # References the predefined VVS MiG-21 squadron def by name -> real name + livery ("VVS - 185th GvIAP")
+    - primary: BAI
+      secondary: air-to-ground
+      aircraft:
+        - 185th GvIAP Fighter Regiment
+      size: 8
+  #Wittstock — historic Fitter/Flogger field; a fighter-bomber regiment flying SAM-killer DEAD.
+  1:
+    - primary: DEAD
+      secondary: air-to-ground
+      aircraft:
+        - 20th Guards Fighter-Bomber Aviation Regiment
+      aircraft_type: Su-17M4 Fitter-K
+      size: 8
+  #Peenemunde — coastal PVO Fulcrums watching the Baltic approaches.
+  25:
+    - primary: BARCAP
+      secondary: any
+      aircraft:
+        - 1st Guards Air Defence Fighter Regiment
+      aircraft_type: MIG-29-FULCRUM
+      size: 8

@@ -1,0 +1,222 @@
+---
+name: Germany - Northern Shield 1988
+theater: GermanyCW
+authors: RetLab
+recommended_player_faction: Blufor Late Cold War (80s)
+recommended_enemy_faction: Russia 1980 (Red Tide)
+description:
+  <p><strong>Note -</strong> Built by RetLab as Red Tide's northern twin. Every unit
+  is stock DCS. Inspired by Tom Clancy's Red Storm Rising.</p>
+  <p>The storm broke before dawn on 13 July 1988. Soviet and Warsaw Pact armies tore
+  across the inner German border, Hamburg fell in the first week, and the Baltic
+  Fleet stood ready to carry the war across the straits to Copenhagen. It never
+  sailed. Danish Hawks and NATO fighters held the sky over Zealand, and when Soviet
+  bombers struck Swedish ports by mistake, Stockholm came into the war.</p>
+  <p>Now the Danish islands, Bornholm and the fields of Skane are NATO's northern
+  shield, and the Baltic is the only road south. The Soviet coast from Barth to
+  Peenemunde is held by a thin line of garrisons, but behind it the 3rd Air Defense
+  Division at Neubrandenburg rings the coast with SA-2s and SA-3s, and an S-200 battery
+  at Magdeburg reaches up over the whole of Brandenburg. There is no land front. The first coastal field has to
+  be cleared and taken from the air.</p>
+  <p>Take Barth, put a front on the coast, and drive south through Neubrandenburg to
+  Templin. Lose Copenhagen, and the north is lost.</p>
+miz: northern_shield_1988.miz
+performance: 1
+recommended_start_date: 1988-07-24
+# Blue-offensive tuning, as Red Tide: NATO out-buys the culminated Soviet salient.
+recommended_player_money: 800
+recommended_enemy_money: 400
+recommended_player_income_multiplier: 1.3
+recommended_enemy_income_multiplier: 0.7
+version: "10.9"
+# The Soviet net is wired by range from the .miz's command centres, comms towers and
+# power sources. NATO has no nodes.
+advanced_iads: true
+settings:
+  squadron_start_full: true
+  # The 1988 era gate, as Red Tide: no post-1988 weapons or cockpit kit.
+  restrict_weapons_by_date: true
+  restrict_props_by_date: true
+  # Red Tide's defensive Soviet posture: alert interceptors at every fighter base.
+  opfor_default_qra_reserve: 4
+  # A Fulcrum on a 60-minute station runs dry (Red Tide M1).
+  desired_barcap_mission_duration: 45
+  c2_decapitation_effects: true
+  # Copenhagen to Templin is 158 NM, past the 150 NM default.
+  max_mission_range_planes: 200
+  plugins:
+    skynetiads: true
+# Who the map's neighbours sided with in July 1988. Without this, every country
+# with no field on the map reads neutral and fires on both sides. Sweden is in
+# the war (it holds Sturup) and the Federal Republic is NATO's own.
+neutral_border_postures:
+  Germany: blue
+  Sweden: blue
+  Belgium: blue
+  The Netherlands: blue
+  France: blue
+  Luxembourg: blue
+  Poland: red
+  Czech Republic: red
+  Slovakia: red
+  Hungary: red
+# Every SAM site is a FIXED group copied unit by unit from Carsten's Cold War
+# Germany Framework; none is generated (the DM's call). The template has no SA-10,
+# so the campaign fields none; its one long-range SAM is the SA-5 at Magdeburg,
+# far in the rear. The fields' own short-range SAMs and guns are generated.
+victory:
+  description: "Take Neubrandenburg and Templin. Hold Copenhagen."
+  win_when:
+    - label: "The Uckermark falls"
+      capture_cps: [Neubrandenburg, Templin]
+  lose_when:
+    - label: "Copenhagen falls"
+      lose_cps: [Kastrup]
+squadrons:
+  # ================================ NATO ================================
+  # Kastrup: the main wing, the AWACS, the tanker and the airlift.
+  Kastrup:
+    - primary: BARCAP
+      secondary: air-to-air
+      aircraft:
+        - 525th Tactical Fighter Squadron
+      size: 8
+    - primary: DEAD
+      secondary: any
+      aircraft:
+        - 23rd FS
+      size: 8
+    - primary: BAI
+      secondary: air-to-ground
+      aircraft:
+        - 414th Tactical Fighter Squadron
+      size: 8
+    - primary: CAS
+      secondary: any
+      aircraft:
+        - 81st Tactical Fighter Squadron
+      size: 8
+    - primary: Strike
+      secondary: any
+      aircraft:
+        - Jagdbombergeschwader 31 Boelcke
+      size: 8
+    # Phantoms: Luftwaffe F-4Fs (as the F-4E) and a 52nd TFW SEAD squadron.
+    - primary: BARCAP
+      secondary: air-to-air
+      aircraft:
+        - GAF JG 74
+      size: 8
+    - primary: SEAD
+      secondary: any
+      aircraft:
+        - 480th TFS (Spangdahlem)
+      size: 8
+    - primary: CAS
+      secondary: any
+      aircraft:
+        - 1-1 Attack Reconnaissance Battalion
+      size: 4
+    - primary: AEW&C
+      aircraft:
+        - NATO E-3A Component
+      size: 1
+    - primary: Refueling
+      aircraft:
+        - 126th Air Refueling Squadron
+      size: 2
+    - primary: Transport
+      secondary: any
+      aircraft:
+        - 910th Airlift Wing
+      size: 2
+  # Sturup: Swedish Viggens for the sea, and Marine Hornets for the SAM belt.
+  Sturup:
+    - primary: Anti-ship
+      secondary: any
+      aircraft:
+        - 71. Attackflygdivisionen
+      size: 8
+    - primary: SEAD
+      secondary: any
+      aircraft:
+        - VMFA-251
+      size: 8
+  # Bornholm: the helicopters that take the first coastal field.
+  Bornholm:
+    - primary: Air Assault
+      secondary: any
+      aircraft:
+        - 5th Battalion 159th Aviation
+      size: 4
+    - primary: Air Assault
+      secondary: any
+      aircraft:
+        - 159th Aviation Detachment (Forward)
+      size: 4
+  # ============================ Warsaw Pact =============================
+  # Barth: the coast's helicopter outpost.
+  Barth:
+    - primary: Escort
+      secondary: any
+      aircraft:
+        - 336th Independent Combat Helicopter Regiment
+      size: 4
+  # Peenemunde: the coastal fighters, the Baltic Fleet's strike regiment and the
+  # transports.
+  Peenemunde:
+    - primary: BARCAP
+      secondary: air-to-air
+      aircraft:
+        - 33rd Fighter Aviation Regiment
+      size: 12
+    - primary: BARCAP
+      secondary: any
+      aircraft:
+        - Jagdfliegergeschwader 1
+      size: 8
+    - primary: Anti-ship
+      secondary: any
+      aircraft:
+        - 4th Guards Naval Assault Aviation Regiment
+      size: 8
+    - primary: Transport
+      secondary: any
+      aircraft:
+        - 226th Composite Aviation Regiment
+      size: 2
+  # Neubrandenburg: the 3rd Air Defense Division's Fulcrums, the assault regiment and
+  # the A-50.
+  Neubrandenburg:
+    - primary: BARCAP
+      secondary: air-to-air
+      aircraft:
+        - 85th Guards Fighter Aviation Regiment
+      size: 12
+    - primary: CAS
+      secondary: any
+      aircraft:
+        - 357th Assault Aviation Regiment
+      size: 8
+    - primary: Air Assault
+      secondary: any
+      aircraft:
+        - 486th Independent Helicopter Regiment
+      size: 4
+    # The one stand on the red side that takes a heavy.
+    - primary: AEW&C
+      aircraft:
+        - 144th Independent Air Reconnaissance Regiment
+      size: 1
+  # Templin: the rear. Flankers and Fencers; its stands take no heavy.
+  Templin:
+    - primary: BARCAP
+      secondary: air-to-air
+      aircraft:
+        - 831st Guards Fighter Aviation Regiment
+      size: 12
+    - primary: SEAD
+      secondary: any
+      aircraft:
+        - 31st Bomber Aviation Regiment
+      size: 8

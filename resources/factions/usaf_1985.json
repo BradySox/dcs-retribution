@@ -1,0 +1,53 @@
+{
+  "country": "USA",
+  "name": "USAF 1985",
+  "authors": "RetLab",
+  "description": "<p>A USAF expeditionary wing in 1985: F-4E Phantoms, F-5Es, SAC B-52s, an E-3A and KC-135s. Every aircraft is stock DCS.</p>",
+  "locales": [
+    "en_US"
+  ],
+  "aircrafts": [
+    "F-4E-45MC Phantom II",
+    "F-5E Tiger II",
+    "B-52H Stratofortress",
+    "C-130J-30",
+    "CH-47D",
+    "UH-1H Iroquois"
+  ],
+  "awacs": [
+    "E-3A"
+  ],
+  "tankers": [
+    "KC-135 Stratotanker"
+  ],
+  "frontline_units": [
+    "M113",
+    "M163 Vulcan Air Defense System",
+    "M48 Chaparral",
+    "M60A3 \"Patton\""
+  ],
+  "artillery_units": [
+    "M109A6 Paladin"
+  ],
+  "infantry_units": [
+    "Infantry M249",
+    "Infantry M4 Georgia"
+  ],
+  "logistics_units": [
+    "Truck M818 6x6",
+    "M151 1/4-ton 4x4 utility truck"
+  ],
+  "air_defense_units": [
+    "EWR AN/FPS-117 Radar",
+    "M163 Vulcan Air Defense System",
+    "M48 Chaparral"
+  ],
+  "missiles": [],
+  "preset_groups": [
+    "Hawk"
+  ],
+  "naval_units": [],
+  "has_jtac": false,
+  "requirements": {},
+  "doctrine": "coldwar"
+}

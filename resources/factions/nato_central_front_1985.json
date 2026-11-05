@@ -1,0 +1,69 @@
+{
+  "country": "USA",
+  "name": "NATO Central Front 1985",
+  "authors": "RetLab",
+  "description": "<p>NATO's Central Front in 1985: USAFE Phantoms, Eagles and A-10s, Luftwaffe Phantoms and Tornados, RAF Germany Tornados, and the US and West German corps on the inner German border. Stock DCS units only.</p>",
+  "locales": [
+    "en_US"
+  ],
+  "aircrafts": [
+    "A-10A Thunderbolt II",
+    "C-130J-30",
+    "CH-47D",
+    "F-15C Eagle",
+    "F-4E-45MC Phantom II",
+    "F/A-18C Hornet (Lot 20)",
+    "Tornado GR4",
+    "Tornado IDS",
+    "UH-1H Iroquois"
+  ],
+  "awacs": [
+    "E-3A"
+  ],
+  "tankers": [
+    "KC-135 Stratotanker"
+  ],
+  "frontline_units": [
+    "M60A3 \"Patton\"",
+    "M113",
+    "Leopard 1A3",
+    "Leopard 2A4",
+    "Marder 1A3",
+    "M163 Vulcan Air Defense System",
+    "Flakpanzer Gepard"
+  ],
+  "artillery_units": [
+    "M109A6 Paladin",
+    "M270 Multiple Launch Rocket System"
+  ],
+  "logistics_units": [
+    "Truck M818 6x6",
+    "Refueler M978 HEMTT"
+  ],
+  "infantry_units": [
+    "Infantry M249",
+    "Infantry M4",
+    "MANPADS Stinger"
+  ],
+  "missiles": [],
+  "preset_groups": [
+    "Hawk",
+    "Patriot",
+    "Rapier"
+  ],
+  "naval_units": [],
+  "air_defense_units": [
+    "EWR AN/FPS-117 Radar",
+    "M163 Vulcan Air Defense System",
+    "M48 Chaparral",
+    "Flakpanzer Gepard",
+    "Roland 2 (Marder Chassis)",
+    "EWR AN/FPS-117 Control Shelter",
+    "C2 Fire Control Bunker"
+  ],
+  "carrier_names": [],
+  "helicopter_carrier_names": [],
+  "requirements": {},
+  "has_jtac": false,
+  "doctrine": "coldwar"
+}
